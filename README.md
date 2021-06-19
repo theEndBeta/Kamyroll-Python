@@ -48,7 +48,7 @@ kmayroll.py --search "TITLE" --limit 10
 
 Unlimited search
 ```
-kmayroll.py --search "one piece"
+kmayroll.py --search "TITLE"
 ```
 
 Display the seasons of a series
