@@ -41,7 +41,7 @@ Connecting with session_id
 kmayroll.py --session_id "SESSION_ID"
 ```
 
-Limited Search
+Limited search
 ```
 kmayroll.py --search "one piece" --limit 10
 ```
