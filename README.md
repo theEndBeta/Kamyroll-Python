@@ -43,7 +43,7 @@ kmayroll.py --session_id "SESSION_ID"
 
 Limited search
 ```
-kmayroll.py --search "one piece" --limit 10
+kmayroll.py --search "TITLE" --limit 10
 ```
 
 Unlimited search
