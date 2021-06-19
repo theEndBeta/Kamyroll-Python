@@ -29,8 +29,8 @@ def main():
     display = True
     dl_root = "Downloads"
     proxies = {
-        "http": "http://149.28.96.242:3128",
-        "https": "http://149.28.96.242:3128"
+        "http": "http://35.200.61.59:3128",
+        "https": "http://35.200.61.59:3128"
     }
 
     if args.login:
