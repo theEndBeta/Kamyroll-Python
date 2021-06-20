@@ -4,12 +4,12 @@ import sys
 import os
 import json
 import math
+from random import randrange
 
 
 def main():
     global display
     global dl_root
-    global proxies
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--login')
@@ -28,11 +28,6 @@ def main():
     limit = 100
     display = True
     dl_root = "Downloads"
-    proxies = {
-        "http": "http://35.200.61.59:3128",
-        "https": "http://35.200.61.59:3128"
-    }
-
     if args.login:
         login(args.login, args.us_unblocker)
     elif args.session_id:
@@ -63,7 +58,51 @@ def main():
             sys.exit(0)
 
 
+def init_proxies(proxy):
+    if proxy:
+        endpoint = "http://pubproxy.com/api/proxy?limit=5&format=json&country=US&type=http&https=true&post=true&cookies=true&speed=9"
+        r = requests.get(endpoint)
+        items = r.json().get("data")
+        data = items[randrange(r.json().get("count"))]
+        ip = data.get("ip")
+        port = data.get("port")
+        country = data.get("country")
+        speed = data.get("speed")
+        proxy_level = data.get("proxy_level")
+
+        file = open('proxy.json', 'w')
+        json.dump({
+            "ip": ip,
+            "port": port,
+            "country": country,
+            "proxy_level": proxy_level,
+            "speed": speed
+        }, file)
+        file.close()
+    else:
+        if os.path.isfile("proxy.json"):
+            os.remove("proxy.json")
+
+
+def get_proxies():
+    if os.path.isfile("proxy.json"):
+        file = open('proxy.json', 'r')
+        proxy = json.load(file)
+        file.close()
+        proxies = {
+            "http": "http://{}:{}".format(proxy.get("ip"), proxy.get("port")),
+            "https": "http://{}:{}".format(proxy.get("ip"), proxy.get("port"))
+        }
+
+        return proxies
+    else:
+        print("Proxy file not found")
+        sys.exit(0)
+
+
 def login(args_login, us_unblocker):
+    init_proxies(us_unblocker)
+
     try:
         email = args_login.split(':')[0].strip()
         password = args_login.split(':')[1].strip()
@@ -76,9 +115,13 @@ def login(args_login, us_unblocker):
     session = requests.session()
 
     if us_unblocker:
-        session.proxies.update(proxies)
+        session.proxies.update(get_proxies())
 
     r = session.get(endpoint)
+    if "<!DOCTYPE html>" in r.text:
+        print("ERROR: Unable to connect to the site with this IP address.")
+        sys.exit(0)
+
     session_id = r.json().get("data").get("session_id")
 
     endpoint = "https://api.crunchyroll.com/login.0.json"
@@ -163,7 +206,7 @@ def get_headers():
     session.headers.update(headers)
     session.cookies.update(cookies)
     if config.get("us_unblocker"):
-        session.proxies.update(proxies)
+        session.proxies.update(get_proxies())
 
     r = session.post(endpoint, data=data)
 
@@ -368,8 +411,9 @@ def init_download(type, id):
         poster_tall = json.dumps(r.json().get("images").get("poster_tall")).replace("[", "").replace("]", "")
         poster = json.loads("[{}]".format(poster_tall))
 
-        dl_path = check_characters("{}/S{} - {}".format(series_title, season_number, season_title))
-        dl_title = check_characters("[S{}.Ep{}] {} - {}".format(season_number, episode, series_title, title))
+        dl_path = "{}\\S{} - {}".format(check_characters(series_title), season_number, check_characters(season_title))
+        dl_title = "[S{}.Ep{}] {} - {}".format(season_number, episode, check_characters(series_title),
+                                               check_characters(title))
         dl_cover = poster[len(poster) - 1].get("source")
 
 
