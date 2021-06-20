@@ -4,7 +4,8 @@ import sys
 import os
 import json
 import math
-from random import randrange
+import random
+import uuid
 
 
 def main():
@@ -59,29 +60,71 @@ def main():
 
 
 def init_proxies(proxy):
-    if proxy:
-        endpoint = "http://pubproxy.com/api/proxy?limit=5&format=json&country=US&type=http&https=true&post=true&cookies=true&speed=9"
-        r = requests.get(endpoint)
-        items = r.json().get("data")
-        data = items[randrange(r.json().get("count"))]
-        ip = data.get("ip")
-        port = data.get("port")
-        country = data.get("country")
-        speed = data.get("speed")
-        proxy_level = data.get("proxy_level")
+    if proxy and not os.path.isfile("proxy.json"):
+        USER_AGENT = "Mozilla/5.0 (X11; Fedora; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36"
+        COUNTRY = "us"
+        LIMIT = 3
+        PING_ID = random.random()
+        EXT_VER = "1.164.641"
+        BROWSER = "chrome"
+        PRODUCT = "cws"
+        UUID = uuid.uuid4().hex
+        IS_PREMIUM = 0
+
+        session = requests.session()
+        session.headers.update({"User-Agent": USER_AGENT})
+
+        endpoint = "https://client.hola.org/client_cgi/background_init?uuid={}".format(UUID)
+        data = {"login": "1", "ver": EXT_VER}
+        r = session.post(endpoint, data=data)
+        session_key = r.json().get("key")
+
+        if session_key == None:
+            print("ERROR: Unlocker unavailable.")
+            sys.exit(0)
+
+        endpoint = "https://client.hola.org/client_cgi/zgettunnels?country={}&limit={}&ping_id={}&ext_ver={}&browser={}&product={}&uuid={}&session_key={}&is_premium={}".format(
+            COUNTRY, LIMIT, PING_ID, EXT_VER, BROWSER, PRODUCT, UUID, session_key, IS_PREMIUM)
+        print(endpoint)
+
+        r = session.get(endpoint)
+
+        object_title = get_object_title(COUNTRY, r.json().get("ztun"))
+        if object_title == None:
+            print("ERROR: US-Unblocker unavailable.")
+            sys.exit(0)
+
+        items = r.json().get("ztun").get(object_title)
+        agent_types = r.json().get("agent_types").get(object_title)
+        host = items[2].split(" ")[1].split(":")[0].strip()
+        port = r.json().get("port").get("direct")
+        ip = r.json().get("ip_list").get(host)
+        protocol = r.json().get("protocol").get(host)
+        vendor = r.json().get("vendor").get(host)
+        agent_key = r.json().get("agent_key")
 
         file = open('proxy.json', 'w')
         json.dump({
+            "uuid": UUID,
             "ip": ip,
+            "host": host,
             "port": port,
-            "country": country,
-            "proxy_level": proxy_level,
-            "speed": speed
+            "agent_types": agent_types,
+            "protocol": protocol,
+            "vendor": vendor,
+            "agent_key": agent_key
         }, file)
         file.close()
-    else:
-        if os.path.isfile("proxy.json"):
-            os.remove("proxy.json")
+
+
+def get_object_title(country, object):
+    title = None
+    titles = ["{}.peer".format(country), country, "id"]
+    for i in range(len(titles)):
+        if titles[i] in object:
+            title = titles[i]
+            break
+    return title
 
 
 def get_proxies():
@@ -90,8 +133,10 @@ def get_proxies():
         proxy = json.load(file)
         file.close()
         proxies = {
-            "http": "http://{}:{}".format(proxy.get("ip"), proxy.get("port")),
-            "https": "http://{}:{}".format(proxy.get("ip"), proxy.get("port"))
+            "http": "https://user-uuid-{}:{}@{}:{}".format(proxy.get("uuid"), proxy.get("agent_key"), proxy.get("host"),
+                                                           proxy.get("port")),
+            "https": "https://user-uuid-{}:{}@{}:{}".format(proxy.get("uuid"), proxy.get("agent_key"),
+                                                            proxy.get("host"), proxy.get("port"))
         }
 
         return proxies
