@@ -60,7 +60,10 @@ def main():
 
 
 def init_proxies(proxy):
-    if proxy and not os.path.isfile("proxy.json"):
+    if proxy:
+        if os.path.isfile("proxy.json"):
+            os.remove("proxy.json")
+        
         USER_AGENT = "Mozilla/5.0 (X11; Fedora; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36"
         COUNTRY = "us"
         LIMIT = 3
