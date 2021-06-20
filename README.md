@@ -22,7 +22,7 @@ Kamyroll-python is the python version of the program used in the application [Ka
  - Each command requires a particular id, if it is not respected, it will be impossible to load valid data.
  - You can change the location of downloads by changing the "dl_root" variable in the script to choose a custom output folder.
  - US unlocking is only available when the user logs in with their credentials.
- - US unlocking requires the use of a US proxy that supports cookies and HTTPS. If the basic one no longer works, you can change the proxy address according to the requirements.
+ - US unlocking requires the use of a US proxy that supports cookies, POST requests and HTTPS.
 
 ## Examples
 
