@@ -60,10 +60,10 @@ def main():
 
 
 def init_proxies(proxy):
+    if os.path.isfile("proxy.json"):
+        os.remove("proxy.json")
+
     if proxy:
-        if os.path.isfile("proxy.json"):
-            os.remove("proxy.json")
-        
         USER_AGENT = "Mozilla/5.0 (X11; Fedora; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36"
         COUNTRY = "us"
         LIMIT = 3
@@ -88,7 +88,6 @@ def init_proxies(proxy):
 
         endpoint = "https://client.hola.org/client_cgi/zgettunnels?country={}&limit={}&ping_id={}&ext_ver={}&browser={}&product={}&uuid={}&session_key={}&is_premium={}".format(
             COUNTRY, LIMIT, PING_ID, EXT_VER, BROWSER, PRODUCT, UUID, session_key, IS_PREMIUM)
-        print(endpoint)
 
         r = session.get(endpoint)
 
@@ -113,6 +112,7 @@ def init_proxies(proxy):
             "host": host,
             "port": port,
             "agent_types": agent_types,
+            "country": COUNTRY.upper(),
             "protocol": protocol,
             "vendor": vendor,
             "agent_key": agent_key
