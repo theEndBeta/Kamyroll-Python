@@ -52,10 +52,10 @@ def main():
                     display = False
                     download(args.download, args.format)
                 else:
-                    print("Download format required")
+                    print("ERROR: Download format required.")
                     sys.exit(0)
         else:
-            print("Login or session required")
+            print("ERROR: Login or session required.")
             sys.exit(0)
 
 
@@ -83,7 +83,7 @@ def init_proxies(proxy):
         session_key = r.json().get("key")
 
         if session_key == None:
-            print("ERROR: Unlocker unavailable.")
+            print("ERROR: US-Unblocker unavailable.")
             sys.exit(0)
 
         endpoint = "https://client.hola.org/client_cgi/zgettunnels?country={}&limit={}&ping_id={}&ext_ver={}&browser={}&product={}&uuid={}&session_key={}&is_premium={}".format(
@@ -144,7 +144,7 @@ def get_proxies():
 
         return proxies
     else:
-        print("Proxy file not found")
+        print("ERROR: Proxy file not found.")
         sys.exit(0)
 
 
@@ -155,7 +155,7 @@ def login(args_login, us_unblocker):
         email = args_login.split(':')[0].strip()
         password = args_login.split(':')[1].strip()
     except:
-        print("Invalid login")
+        print("ERROR: Invalid login format.")
         sys.exit(0)
 
     endpoint = "https://api.crunchyroll.com/start_session.0.json?version=1.0&access_token={}&device_type={}&device_id={}".format(
@@ -351,6 +351,10 @@ def get_seasons(args_seasons):
         config.get("country_code"), config.get("maturity_rating"), config.get("channel"), series_id, get_locale(),
         config.get("signature"), config.get("policy"), config.get("key_pair_id"))
     r = requests.get(endpoint)
+    if "message" in r.json():
+        print("ERROR: {}.".format(r.json().get("message")))
+        sys.exit(0)
+
     items = r.json().get("items")
 
     id = list()
@@ -375,6 +379,10 @@ def get_episodes(args_episodes):
         config.get("country_code"), config.get("maturity_rating"), config.get("channel"), season_id, get_locale(),
         config.get("signature"), config.get("policy"), config.get("key_pair_id"))
     r = requests.get(endpoint)
+    if "message" in r.json():
+        print("ERROR: {}.".format(r.json().get("message")))
+        sys.exit(0)
+
     items = r.json().get("items")
 
     id = list()
@@ -413,6 +421,9 @@ def get_formats(arg_formats):
         config.get("country_code"), config.get("maturity_rating"), config.get("channel"), streams_id, get_locale(),
         config.get("signature"), config.get("policy"), config.get("key_pair_id"))
     r = requests.get(endpoint)
+    if "message" in r.json():
+        print("ERROR: {}.".format(r.json().get("message")))
+        sys.exit(0)
 
     href = r.json().get("__links__").get("resource").get("href")
     if "movies" in href:
