@@ -180,6 +180,9 @@ def login(args_login, us_unblocker):
 
 
 def start_session(session_id, us_unblocker):
+    if not us_unblocker and os.path.isfile("proxy.json"):
+        os.remove("proxy.json")
+    
     endpoint = "https://api.crunchyroll.com/start_session.0.json?session_id={}".format(session_id)
     r = requests.get(endpoint)
     etp_rt = r.cookies.get("etp_rt")
