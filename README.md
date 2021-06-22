@@ -8,6 +8,7 @@ Kamyroll-python is the python version of the program used in the application [Ka
 - Download subtitles in all languages
 - Search for videos
 - Compatible with or free or premium account
+- US-Unblocker for full access to the catalogue
 - Available for all platforms (macOS, Windows, Linux, etc.)
 
 ## Requirements
