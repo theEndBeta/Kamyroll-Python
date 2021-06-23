@@ -28,52 +28,52 @@ Kamyroll-python is the python version of the program used in the application [Ka
 
 Login with ID
 ```
-kmayroll.py --login "MAIL:PASSWORD"
+kamyroll.py --login "MAIL:PASSWORD"
 ```
 
 Login with ID with US unlock
 ```
-kmayroll.py --login "MAIL:PASSWORD" --us_unblocker
+kamyroll.py --login "MAIL:PASSWORD" --us_unblocker
 ```
 
 Connecting with session_id
 ```
-kmayroll.py --session_id "SESSION_ID"
+kamyroll.py --session_id "SESSION_ID"
 ```
 
 Limited search
 ```
-kmayroll.py --search "TITLE" --limit 10
+kamyroll.py --search "TITLE" --limit 10
 ```
 
 Unlimited search
 ```
-kmayroll.py --search "TITLE"
+kamyroll.py --search "TITLE"
 ```
 
 Display the seasons of a series
 ```
-kmayroll.py --seasons "SERIES_ID"
+kamyroll.py --seasons "SERIES_ID"
 ```
 
 Show episodes of a season
 ```
-kmayroll.py --episodes "SEASON_ID"
+kamyroll.py --episodes "SEASON_ID"
 ```
 
 View movies from the movie list
 ```
-kmayroll.py --movie "MOVIE_LISTING_ID"
+kamyroll.py --movie "MOVIE_LISTING_ID"
 ```
 
 View available formats for streams
 ```
-kmayroll.py --formats "EPISODE_ID or MOVIE_ID"
+kamyroll.py --formats "EPISODE_ID or MOVIE_ID"
 ```
 
 Download the video or subtitles
 ```
-kmayroll.py --download "EPISODE_ID or MOVIE_ID" --format "SUBTITLES_FORMAT or VIDEO_FORMAT"
+kamyroll.py --download "EPISODE_ID or MOVIE_ID" --format "SUBTITLES_FORMAT or VIDEO_FORMAT"
 ```
 
 -----------------
