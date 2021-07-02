@@ -13,17 +13,17 @@ def main():
     global dl_root
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--login')
-    parser.add_argument('--us_unblocker', action="store_true")
-    parser.add_argument('--session_id')
-    parser.add_argument('--search')
-    parser.add_argument('--limit')
-    parser.add_argument('--seasons')
-    parser.add_argument('--episodes')
-    parser.add_argument('--movie')
-    parser.add_argument('--formats')
-    parser.add_argument('--download')
-    parser.add_argument('--format')
+    parser.add_argument("--login")
+    parser.add_argument("--us_unblocker", action="store_true")
+    parser.add_argument("--session_id")
+    parser.add_argument("--search")
+    parser.add_argument("--limit")
+    parser.add_argument("--seasons")
+    parser.add_argument("--episodes")
+    parser.add_argument("--movie")
+    parser.add_argument("--formats")
+    parser.add_argument("--download")
+    parser.add_argument("--format")
     args = parser.parse_args()
 
     limit = 100
@@ -87,7 +87,16 @@ def init_proxies(proxy):
             sys.exit(0)
 
         endpoint = "https://client.hola.org/client_cgi/zgettunnels?country={}&limit={}&ping_id={}&ext_ver={}&browser={}&product={}&uuid={}&session_key={}&is_premium={}".format(
-            COUNTRY, LIMIT, PING_ID, EXT_VER, BROWSER, PRODUCT, UUID, session_key, IS_PREMIUM)
+            COUNTRY,
+            LIMIT,
+            PING_ID,
+            EXT_VER,
+            BROWSER,
+            PRODUCT,
+            UUID,
+            session_key,
+            IS_PREMIUM,
+        )
 
         r = session.get(endpoint)
 
@@ -105,18 +114,21 @@ def init_proxies(proxy):
         vendor = r.json().get("vendor").get(host)
         agent_key = r.json().get("agent_key")
 
-        file = open('proxy.json', 'w')
-        json.dump({
-            "uuid": UUID,
-            "ip": ip,
-            "host": host,
-            "port": port,
-            "agent_types": agent_types,
-            "country": COUNTRY.upper(),
-            "protocol": protocol,
-            "vendor": vendor,
-            "agent_key": agent_key
-        }, file)
+        file = open("proxy.json", "w")
+        json.dump(
+            {
+                "uuid": UUID,
+                "ip": ip,
+                "host": host,
+                "port": port,
+                "agent_types": agent_types,
+                "country": COUNTRY.upper(),
+                "protocol": protocol,
+                "vendor": vendor,
+                "agent_key": agent_key,
+            },
+            file,
+        )
         file.close()
 
 
@@ -132,14 +144,22 @@ def get_object_title(country, object):
 
 def get_proxies():
     if os.path.isfile("proxy.json"):
-        file = open('proxy.json', 'r')
+        file = open("proxy.json", "r")
         proxy = json.load(file)
         file.close()
         proxies = {
-            "http": "https://user-uuid-{}:{}@{}:{}".format(proxy.get("uuid"), proxy.get("agent_key"), proxy.get("host"),
-                                                           proxy.get("port")),
-            "https": "https://user-uuid-{}:{}@{}:{}".format(proxy.get("uuid"), proxy.get("agent_key"),
-                                                            proxy.get("host"), proxy.get("port"))
+            "http": "https://user-uuid-{}:{}@{}:{}".format(
+                proxy.get("uuid"),
+                proxy.get("agent_key"),
+                proxy.get("host"),
+                proxy.get("port"),
+            ),
+            "https": "https://user-uuid-{}:{}@{}:{}".format(
+                proxy.get("uuid"),
+                proxy.get("agent_key"),
+                proxy.get("host"),
+                proxy.get("port"),
+            ),
         }
 
         return proxies
@@ -152,14 +172,17 @@ def login(args_login, us_unblocker):
     init_proxies(us_unblocker)
 
     try:
-        email = args_login.split(':')[0].strip()
-        password = args_login.split(':')[1].strip()
+        email = args_login.split(":")[0].strip()
+        password = args_login.split(":")[1].strip()
     except:
         print("ERROR: Invalid login format.")
         sys.exit(0)
 
     endpoint = "https://api.crunchyroll.com/start_session.0.json?version=1.0&access_token={}&device_type={}&device_id={}".format(
-        "LNDJgOit5yaRIWN", "com.crunchyroll.windows.desktop", "Az2srGnChW65fuxYz2Xxl1GcZQgtGgI")
+        "LNDJgOit5yaRIWN",
+        "com.crunchyroll.windows.desktop",
+        "Az2srGnChW65fuxYz2Xxl1GcZQgtGgI",
+    )
     session = requests.session()
 
     if us_unblocker:
@@ -182,7 +205,7 @@ def login(args_login, us_unblocker):
 def start_session(session_id, us_unblocker):
     if not us_unblocker and os.path.isfile("proxy.json"):
         os.remove("proxy.json")
-    
+
     endpoint = "https://api.crunchyroll.com/start_session.0.json?session_id={}".format(session_id)
     r = requests.get(endpoint)
     etp_rt = r.cookies.get("etp_rt")
@@ -193,20 +216,23 @@ def start_session(session_id, us_unblocker):
         channel = "crunchyroll"
     country_code = r.json().get("data").get("country_code")
 
-    file = open('config.json', 'w')
-    json.dump({
-        "session_id": session_id,
-        "etp_rt": etp_rt,
-        "us_unblocker": us_unblocker,
-        "channel": channel,
-        "country_code": country_code,
-        "maturity_rating": "",
-        "policy": "",
-        "signature": "",
-        "key_pair_id": "",
-        "account_id": "",
-        "external_id": ""
-    }, file)
+    file = open("config.json", "w")
+    json.dump(
+        {
+            "session_id": session_id,
+            "etp_rt": etp_rt,
+            "us_unblocker": us_unblocker,
+            "channel": channel,
+            "country_code": country_code,
+            "maturity_rating": "",
+            "policy": "",
+            "signature": "",
+            "key_pair_id": "",
+            "account_id": "",
+            "external_id": "",
+        },
+        file,
+    )
     file.close()
 
     headers = get_headers()
@@ -228,20 +254,23 @@ def start_session(session_id, us_unblocker):
 
     maturity_rating = r.json().get("maturity_rating")
 
-    file = open('config.json', 'w')
-    json.dump({
-        "session_id": session_id,
-        "etp_rt": etp_rt,
-        "us_unblocker": us_unblocker,
-        "channel": channel,
-        "country_code": country_code,
-        "maturity_rating": maturity_rating,
-        "policy": policy,
-        "signature": signature,
-        "key_pair_id": key_pair_id,
-        "account_id": account_id,
-        "external_id": external_id
-    }, file)
+    file = open("config.json", "w")
+    json.dump(
+        {
+            "session_id": session_id,
+            "etp_rt": etp_rt,
+            "us_unblocker": us_unblocker,
+            "channel": channel,
+            "country_code": country_code,
+            "maturity_rating": maturity_rating,
+            "policy": policy,
+            "signature": signature,
+            "key_pair_id": key_pair_id,
+            "account_id": account_id,
+            "external_id": external_id,
+        },
+        file,
+    )
     file.close()
 
 
@@ -268,7 +297,7 @@ def get_headers():
 
 def get_config():
     if os.path.isfile("config.json"):
-        file = open('config.json', 'r')
+        file = open("config.json", "r")
         config = json.load(file)
         file.close()
         return config
@@ -281,7 +310,19 @@ def get_locale():
     config = get_config()
     locale = "en-US"
     countries = ["", "JP", "US", "LA", "ES", "FR", "BR", "IT", "DE", "RU", "ME"]
-    locales = ["", "ja-JP", "en-US", "es-LA", "es-ES", "fr-FR", "pt-BR", "it-IT", "de-DE", "ru-RU", "ar-ME"]
+    locales = [
+        "",
+        "ja-JP",
+        "en-US",
+        "es-LA",
+        "es-ES",
+        "fr-FR",
+        "pt-BR",
+        "it-IT",
+        "de-DE",
+        "ru-RU",
+        "ar-ME",
+    ]
     for i in range(len(countries)):
         if config.get("country_code") == countries[i]:
             locale = locales[i]
@@ -294,8 +335,7 @@ def search(args_search, args_limit):
     limit = args_limit
 
     headers = get_headers()
-    endpoint = "https://beta-api.crunchyroll.com/content/v1/search?q={}&n={}&type=&locale={}".format(query, limit,
-                                                                                                     get_locale())
+    endpoint = "https://beta-api.crunchyroll.com/content/v1/search?q={}&n={}&type=&locale={}".format(query, limit, get_locale())
     r = requests.get(endpoint, headers=headers)
     items = r.json().get("items")
 
@@ -328,7 +368,9 @@ def search_series(items):
     print("\n[debug] Result for: series")
     print("{0:<15} {1:<40} {2:<10} {3:<10}".format("ID", "Title", "Season", "Episode"))
     for i in range(len(id)):
-        print("{0:<15} {1:<40} {2:<10} {3:<10}".format(id[i], title[i], season_count[i], episode_count[i]))
+        print("{0:<15} {1:<40} {2:<10} {3:<10}".format(
+                id[i], title[i], season_count[i], episode_count[i]
+            ))
 
 
 def search_movie_listing(items):
@@ -351,8 +393,15 @@ def get_seasons(args_seasons):
 
     config = get_config()
     endpoint = "https://beta-api.crunchyroll.com/cms/v2/{}/{}/{}/seasons?series_id={}&locale={}&Signature={}&Policy={}&Key-Pair-Id={}".format(
-        config.get("country_code"), config.get("maturity_rating"), config.get("channel"), series_id, get_locale(),
-        config.get("signature"), config.get("policy"), config.get("key_pair_id"))
+        config.get("country_code"),
+        config.get("maturity_rating"),
+        config.get("channel"),
+        series_id,
+        get_locale(),
+        config.get("signature"),
+        config.get("policy"),
+        config.get("key_pair_id"),
+    )
     r = requests.get(endpoint)
     if "message" in r.json():
         print("ERROR: {}.".format(r.json().get("message")))
@@ -379,8 +428,15 @@ def get_episodes(args_episodes):
 
     config = get_config()
     endpoint = "https://beta-api.crunchyroll.com/cms/v2/{}/{}/{}/episodes?season_id={}&locale={}&Signature={}&Policy={}&Key-Pair-Id={}".format(
-        config.get("country_code"), config.get("maturity_rating"), config.get("channel"), season_id, get_locale(),
-        config.get("signature"), config.get("policy"), config.get("key_pair_id"))
+        config.get("country_code"),
+        config.get("maturity_rating"),
+        config.get("channel"),
+        season_id,
+        get_locale(),
+        config.get("signature"),
+        config.get("policy"),
+        config.get("key_pair_id"),
+    )
     r = requests.get(endpoint)
     if "message" in r.json():
         print("ERROR: {}.".format(r.json().get("message")))
@@ -398,14 +454,29 @@ def get_episodes(args_episodes):
         title.append(item.get("title"))
         is_premium_only.append(item.get("is_premium_only"))
         if "playback" in item:
-            id.append(item.get("__links__").get("streams").get("href").split("videos/")[1].split("/")[0].strip())
+            id.append(
+                item.get("__links__")
+                .get("streams")
+                .get("href")
+                .split("videos/")[1]
+                .split("/")[0]
+                .strip()
+            )
         else:
             id.append("Unavailable")
 
     print("\n[debug] Episodes for {}:".format(season_id))
-    print("{0:<15} {1:<10} {2:<10} {3:<40}".format("ID", "Episode", "Premium only", "Title"))
+    print(
+        "{0:<15} {1:<10} {2:<10} {3:<40}".format(
+            "ID", "Episode", "Premium only", "Title"
+        )
+    )
     for i in range(len(id)):
-        print("{0:<15} {1:<10} {2:<10} {3:<40}".format(id[i], episode[i], get_boolean(is_premium_only[i]), title[i]))
+        print(
+            "{0:<15} {1:<10} {2:<10} {3:<40}".format(
+                id[i], episode[i], get_boolean(is_premium_only[i]), title[i]
+            )
+        )
 
 
 def get_boolean(boolean):
@@ -421,8 +492,15 @@ def get_formats(arg_formats):
 
     config = get_config()
     endpoint = "https://beta-api.crunchyroll.com/cms/v2/{}/{}/{}/videos/{}/streams?locale={}&Signature={}&Policy={}&Key-Pair-Id={}".format(
-        config.get("country_code"), config.get("maturity_rating"), config.get("channel"), streams_id, get_locale(),
-        config.get("signature"), config.get("policy"), config.get("key_pair_id"))
+        config.get("country_code"),
+        config.get("maturity_rating"),
+        config.get("channel"),
+        streams_id,
+        get_locale(),
+        config.get("signature"),
+        config.get("policy"),
+        config.get("key_pair_id"),
+    )
     r = requests.get(endpoint)
     if "message" in r.json():
         print("ERROR: {}.".format(r.json().get("message")))
@@ -447,12 +525,24 @@ def init_download(type, id):
 
     config = get_config()
     endpoint = "https://beta-api.crunchyroll.com/cms/v2/{}/{}/{}/{}/{}?locale={}&Signature={}&Policy={}&Key-Pair-Id={}".format(
-        config.get("country_code"), config.get("maturity_rating"), config.get("channel"), type, id, get_locale(),
-        config.get("signature"), config.get("policy"), config.get("key_pair_id"))
+        config.get("country_code"),
+        config.get("maturity_rating"),
+        config.get("channel"),
+        type,
+        id,
+        get_locale(),
+        config.get("signature"),
+        config.get("policy"),
+        config.get("key_pair_id"),
+    )
     r = requests.get(endpoint)
     if type == "movies":
         title = r.json().get("title")
-        thumbnails = json.dumps(r.json().get("images").get("thumbnail")).replace("[", "").replace("]", "")
+        thumbnails = (
+            json.dumps(r.json().get("images").get("thumbnail"))
+            .replace("[", "")
+            .replace("]", "")
+        )
         thumbnail = json.loads("[{}]".format(thumbnails))
 
         dl_path = check_characters(title)
@@ -467,28 +557,54 @@ def init_download(type, id):
         title = r.json().get("title")
 
         endpoint = "https://beta-api.crunchyroll.com/cms/v2/{}/{}/{}/series/{}?locale={}&Signature={}&Policy={}&Key-Pair-Id={}".format(
-            config.get("country_code"), config.get("maturity_rating"), config.get("channel"), series_id, get_locale(),
-            config.get("signature"), config.get("policy"), config.get("key_pair_id"))
+            config.get("country_code"),
+            config.get("maturity_rating"),
+            config.get("channel"),
+            series_id,
+            get_locale(),
+            config.get("signature"),
+            config.get("policy"),
+            config.get("key_pair_id"),
+        )
         r = requests.get(endpoint)
-        poster_tall = json.dumps(r.json().get("images").get("poster_tall")).replace("[", "").replace("]", "")
+        poster_tall = (
+            json.dumps(r.json().get("images").get("poster_tall"))
+            .replace("[", "")
+            .replace("]", "")
+        )
         poster = json.loads("[{}]".format(poster_tall))
-
-        dl_path = "{}\\S{} - {}".format(check_characters(series_title), season_number, check_characters(season_title))
-        dl_title = "[S{}.Ep{}] {} - {}".format(season_number, episode, check_characters(series_title),
-                                               check_characters(title))
+        dl_path = os.path.join(check_characters(series_title), f'S{season_number} - {check_characters(season_title)}')
+        dl_title = "[S{}.Ep{}] {} - {}".format(
+            season_number,
+            episode,
+            check_characters(series_title),
+            check_characters(title),
+        )
         dl_cover = poster[len(poster) - 1].get("source")
 
 
 def check_characters(title):
-    characters = ['\\', '/', ':', '*', '?', '"', '<', '>', '|']
+    characters = ["\\", "/", ":", "*", "?", '"', "<", ">", "|"]
     for character in characters:
         if character in title:
-            title = title.replace(character, '#')
+            title = title.replace(character, "#")
     return title
 
 
 def get_items(item):
-    locales = ["", "ja-JP", "en-US", "es-LA", "es-ES", "fr-FR", "pt-BR", "it-IT", "de-DE", "ru-RU", "ar-ME"]
+    locales = [
+        "",
+        "ja-JP",
+        "en-US",
+        "es-LA",
+        "es-ES",
+        "fr-FR",
+        "pt-BR",
+        "it-IT",
+        "de-DE",
+        "ru-RU",
+        "ar-ME",
+    ]
     items = list()
     for i in range(len(locales)):
         if locales[i] in item:
@@ -507,14 +623,21 @@ def formats_subtitles(items):
         locale.append(item.get("locale"))
         subtitles_url.append(item.get("url"))
         subtitles_extension.append(item.get("format"))
-        subtitles_format_code.append("{}-subtitles-{}".format(streams_id, item.get("locale")))
+        subtitles_format_code.append(
+            "{}-subtitles-{}".format(streams_id, item.get("locale"))
+        )
 
     if display:
         print("\n[debug] Subtitles for {}:".format(streams_id))
         print("{0:<40} {1:<20} {2:<20}".format("Format code", "Extension", "Language"))
         for i in range(len(locale)):
-            print("{0:<40} {1:<20} {2:<20}".format(subtitles_format_code[i], subtitles_extension[i],
-                                                   get_locale_title(locale[i])))
+            print(
+                "{0:<40} {1:<20} {2:<20}".format(
+                    subtitles_format_code[i],
+                    subtitles_extension[i],
+                    get_locale_title(locale[i]),
+                )
+            )
 
 
 def formats_videos(items):
@@ -529,14 +652,14 @@ def formats_videos(items):
         hardsub_locale = item.get("hardsub_locale")
         r = requests.get(item.get("url"))
 
-        streams = r.text.split('#EXT-X-STREAM')
+        streams = r.text.split("#EXT-X-STREAM")
 
         for stream in streams:
             if "RESOLUTION" in stream:
                 bandwidth = stream.split("BANDWIDTH=")[1].split(",")[0].strip()
                 resolution = stream.split("RESOLUTION=")[1].split(",")[0].strip()
                 frame_rate = stream.split("FRAME-RATE=")[1].split(",")[0].strip()
-                codecs = stream.split("CODECS=\"")[1].split("\"")[0].strip()
+                codecs = stream.split('CODECS="')[1].split('"')[0].strip()
                 url = "http{}".format(stream.split("http")[1].strip())
 
                 format = "{}-video".format(streams_id)
@@ -549,24 +672,60 @@ def formats_videos(items):
                 resolutions.append(resolution)
 
                 note.append(
-                    "[{}] {}k , {}, {}, {}".format(audio_locale, bandwidth, codecs.split(",")[0].strip(), frame_rate,
-                                                   codecs.split(",")[1].strip()))
+                    "[{}] {}k , {}, {}, {}".format(
+                        audio_locale,
+                        bandwidth,
+                        codecs.split(",")[0].strip(),
+                        frame_rate,
+                        codecs.split(",")[1].strip(),
+                    )
+                )
                 videos_url.append(url)
                 index += 1
 
     if display:
         print("\n[debug] Videos for {}:".format(streams_id))
-        print("{0:<40} {1:<20} {2:<20} {3:<40}".format("Format code", "Extension", "Resolution", "Note"))
+        print(
+            "{0:<40} {1:<20} {2:<20} {3:<40}".format(
+                "Format code", "Extension", "Resolution", "Note"
+            )
+        )
         for i in range(len(videos_format_code)):
-            print("{0:<40} {1:<20} {2:<20} {3:<40}".format(videos_format_code[i], "mp4", resolutions[i], note[i]))
+            print(
+                "{0:<40} {1:<20} {2:<20} {3:<40}".format(
+                    videos_format_code[i], "mp4", resolutions[i], note[i]
+                )
+            )
 
 
 def get_locale_title(locale):
     title = "Disabled"
-    titles = ["Disabled", "Japanese", "English (US)", "Spanish (Latin America)", "Spanish (Spain)",
-              "French (France)", "Portuguese (Brazil)", "Italian", "German", "Russian", "Arabic"]
-    locales = ["", "ja-JP", "en-US", "es-LA", "es-ES", "fr-FR", "pt-BR", "it-IT", "de-DE", "ru-RU",
-               "ar-ME"]
+    titles = [
+        "Disabled",
+        "Japanese",
+        "English (US)",
+        "Spanish (Latin America)",
+        "Spanish (Spain)",
+        "French (France)",
+        "Portuguese (Brazil)",
+        "Italian",
+        "German",
+        "Russian",
+        "Arabic",
+    ]
+    locales = [
+        "",
+        "ja-JP",
+        "en-US",
+        "es-LA",
+        "es-ES",
+        "fr-FR",
+        "pt-BR",
+        "it-IT",
+        "de-DE",
+        "ru-RU",
+        "ar-ME",
+    ]
     for i in range(len(titles)):
         if locale == locales[i]:
             title = titles[i]
@@ -579,9 +738,15 @@ def get_movie(arg_movie):
 
     config = get_config()
     endpoint = "https://beta-api.crunchyroll.com/cms/v2/{}/{}/{}/movies?movie_listing_id={}&locale={}&Signature={}&Policy={}&Key-Pair-Id={}".format(
-        config.get("country_code"), config.get("maturity_rating"), config.get("channel"), movie_listing_id,
+        config.get("country_code"),
+        config.get("maturity_rating"),
+        config.get("channel"),
+        movie_listing_id,
         get_locale(),
-        config.get("signature"), config.get("policy"), config.get("key_pair_id"))
+        config.get("signature"),
+        config.get("policy"),
+        config.get("key_pair_id"),
+    )
     r = requests.get(endpoint)
 
     items = r.json().get("items")
@@ -595,16 +760,32 @@ def get_movie(arg_movie):
         duration_ms.append(item.get("duration_ms"))
         is_premium_only.append(item.get("is_premium_only"))
         if "playback" in item:
-            id.append(item.get("__links__").get("streams").get("href").split("videos/")[1].split("/")[0].strip())
+            id.append(
+                item.get("__links__")
+                .get("streams")
+                .get("href")
+                .split("videos/")[1]
+                .split("/")[0]
+                .strip()
+            )
         else:
             id.append("Unavailable")
 
     print("\n[debug] Movies for {}:".format(movie_listing_id))
-    print("{0:<15} {1:<20} {2:<20} {3:<40}".format("ID", "Premium only", "Duration", "Title"))
+    print(
+        "{0:<15} {1:<20} {2:<20} {3:<40}".format(
+            "ID", "Premium only", "Duration", "Title"
+        )
+    )
     for i in range(len(id)):
         print(
-            "{0:<15} {1:<20} {2:<20} {3:<40}".format(id[i], get_boolean(is_premium_only[i]),
-                                                     get_duration(duration_ms[i]), title[i]))
+            "{0:<15} {1:<20} {2:<20} {3:<40}".format(
+                id[i],
+                get_boolean(is_premium_only[i]),
+                get_duration(duration_ms[i]),
+                title[i],
+            )
+        )
 
 
 def get_duration(duration_ms):
@@ -617,7 +798,9 @@ def get_duration(duration_ms):
         minutes -= 60
     while seconds > 60:
         seconds -= 60
-    return "{} h {} min {} sec".format(math.floor(hours), math.floor(minutes), math.floor(seconds))
+    return "{} h {} min {} sec".format(
+        math.floor(hours), math.floor(minutes), math.floor(seconds)
+    )
 
 
 def download(args_download, args_format):
@@ -659,25 +842,27 @@ def download(args_download, args_format):
 
 
 def download_cover():
-    if os.path.isfile("{}\\{}\\cover.jpg".format(dl_root, dl_path)):
-        os.remove("{}\\{}\\cover.jpg".format(dl_root, dl_path))
+    if os.path.isfile(os.path.join(".", dl_root, dl_path, "cover.jpg")):
+        os.remove(os.path.join(".", dl_root, dl_path, "cover.jpg"))
 
     print("[debug] Cover download")
     response = requests.get(dl_cover)
-    file = open("{}\\{}\\cover.jpg".format(dl_root, dl_path), "wb")
+    file = open(os.path.join(".", dl_root, dl_path, "cover.jpg"), "wb")
     file.write(response.content)
     file.close()
 
 
 def create_folder():
-    if not os.path.exists("{}\\{}".format(dl_root, dl_path)):
-        os.makedirs("{}\\{}".format(dl_root, dl_path))
+    if not os.path.exists(os.path.join(".", dl_root, dl_path)):
+        os.makedirs(os.path.join(".", dl_root, dl_path))
 
 
 def download_video():
     print("[debug] Video download")
     try:
-        os.system('youtube-dl -o "{}\\{}\\{}.%(ext)s" "{}"'.format(dl_root, dl_path, dl_title, dl_url))
+        os.system(
+            f'''youtube-dl -o "{os.path.join('.', dl_root, dl_path, dl_title)}.%(ext)s" "{dl_url}"'''
+        )
     except:
         print("ERROR: Download error")
         sys.exit(0)
@@ -686,16 +871,17 @@ def download_video():
 def download_subtitles():
     output = "{} [{}]".format(dl_title, get_locale_title(dl_format.split("subtitles-")[1].strip()))
 
-    if os.path.isfile("{}/{}/{}.{}".format(dl_root, dl_path, output, dl_extension)):
-        os.remove("{}/{}/{}.{}".format(dl_root, dl_path, output, dl_extension))
+    if os.path.isfile(os.path.join(".", dl_root, dl_path, output) + f".{dl_extension}"):
+        os.remove(os.path.join(".", dl_root, dl_path, output) + f".{dl_extension}")
 
     print("[debug] Subtitles download")
     response = requests.get(dl_url)
-    file = open("{}/{}/{}.{}".format(dl_root, dl_path, output, dl_extension), "wb")
+    # print(dl_root, dl_path, output, dl_extension, sep="\n")
+    file = open(os.path.join(".", dl_root, dl_path, output) + f".{dl_extension}", "wb")
     file.write(response.content)
     file.close()
     sys.exit(0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
