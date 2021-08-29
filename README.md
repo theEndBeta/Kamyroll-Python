@@ -8,92 +8,87 @@ Kamyroll-python is the python version of the program used in the application [Ka
 - Download subtitles in all languages
 - Search for videos
 - Compatible with or free or premium account
-- US-Unblocker for full access to the catalogue
+- Use a proxy to unblock the entire catalog
 - Available for all platforms (macOS, Windows, Linux, etc.)
+- Download all available episodes and movies
+- Videos in mp4, mkv with or without Hardsub
 
 ## Requirements
-- [youtube-dl](https://youtube-dl.org/)
-- [Python](https://www.python.org/downloads/) 3+
+- [ffmpeg](https://www.ffmpeg.org)
+- [Python](https://www.python.org/downloads) 3+
 
 ### Installation
 `pip install requests`
 
 ## Information
- - The use of the script requires a user to log in. The user can either log in to his session id or account crunchyroll.
- - Each command requires a particular id, if it is not respected, it will be impossible to load valid data.
- - You can change the location of downloads by changing the "dl_root" variable in the script to choose a custom output folder.
- - US unlocking is only available when the user logs in with their credentials.
- - Easy to use guided mode.
+ - To use the script log in with your email or username and your Crunchyroll password.
+ - Configure your configuration file according to your preferences.
+ - If you don't have Python, you can use the compiler version for Windows.
+
+## Proxy configuration
+Secure proxy compatible with Crunchyroll: https://github.com/Snawoot/hola-proxy
+<img src="https://github.com/hyugogirubato/Kamyroll-Python/blob/main/Presentation/img_proxy.png" width="80%"></img>  
+#### Command
+- RED: Selected region
+  
+#### Proxy in config.json
+- GREEN: uuid
+- BLUE: agent_key
+- PURPLE: host
+- YELLOW: port
+
+
 
 ## Examples
 
-Login with ID
+### Login with ID
 ```
 kamyroll.py --login "MAIL:PASSWORD"
 ```
-
-Login with ID with US unlock
-```
-kamyroll.py --login "MAIL:PASSWORD" --us_unblocker
-```
-
-Connecting with session_id
-```
-kamyroll.py --session_id "SESSION_ID"
-```
-
-### After logging in, you can use the command line or use the guided mode: 
-
-    
-    kamyroll.py --guided
-    
 or
+```
+kamyroll.py -l "MAIL:PASSWORD"
+```
 
+### Search a series, films, episode
+```
+kamyroll.py --search "QUERY"
+```
 
-    kamyroll.py -g
-    
-
-### Add the link-only flag to skip the download and print the download URL to stdout
-
-    kamyroll.py --link_only
-
+### Show seasons of a series
+```
+kamyroll.py --season "SERIES_ID"
+```
 or
-
-    kamyroll.py -l
-    
-Limited search
 ```
-kamyroll.py --search "TITLE" --limit 10
+kamyroll.py -s "SERIES_ID"
 ```
 
-Unlimited search
+### Show episodes of a season
 ```
-kamyroll.py --search "TITLE"
+kamyroll.py --episode "SEASON_ID"
 ```
-
-Display the seasons of a series
+or
 ```
-kamyroll.py --seasons "SERIES_ID"
-```
-
-Show episodes of a season
-```
-kamyroll.py --episodes "SEASON_ID"
+kamyroll.py -e "SEASON_ID"
 ```
 
-View movies from the movie list
+### View movies from a movie list
 ```
-kamyroll.py --movie "MOVIE_LISTING_ID"
+kamyroll.py --movie "MOVIE_ID"
+```
+or
+```
+kamyroll.py -m "MOVIE_ID"
 ```
 
-View available formats for streams
+### Download an episode or movie
 ```
-kamyroll.py --formats "EPISODE_ID or MOVIE_ID"
+kamyroll.py --download "EPISODE_ID or MOVIE_ID"
 ```
-
-Download the video or subtitles
+or
 ```
-kamyroll.py --download "EPISODE_ID or MOVIE_ID" --format "SUBTITLES_FORMAT or VIDEO_FORMAT"
+kamyroll.py -d "EPISODE_ID or MOVIE_ID"
 ```
 
 -----------------
