@@ -50,6 +50,15 @@ or
 kamyroll.py -l "MAIL:PASSWORD"
 ```
 
+### Login with configured ID
+```
+kamyroll.py --connect
+```
+or
+```
+kamyroll.py -c
+```
+
 ### Search a series, films, episode
 ```
 kamyroll.py --search "QUERY"
@@ -73,7 +82,7 @@ or
 kamyroll.py -e "SEASON_ID"
 ```
 
-### View movies from a movie list
+### Show movies from a movie list
 ```
 kamyroll.py --movie "MOVIE_ID"
 ```
