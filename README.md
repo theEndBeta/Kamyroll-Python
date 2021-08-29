@@ -24,6 +24,8 @@ Kamyroll-python is the python version of the program used in the application [Ka
  - To use the script log in with your email or username and your Crunchyroll password.
  - Configure your configuration file according to your preferences.
  - If you don't have Python, you can use the compiler version for Windows.
+ - Available subtitle language: "", "en-US", "en-GB", "es-419", "es-ES", "pt-BR", "pt-PT", "fr-FR", "de-DE", "ar-SA", "it-I", "ru-RU"
+ - Video resolution available: "1080", "720", "480", "360", "240"
 
 ## Proxy configuration
 Secure proxy compatible with Crunchyroll: https://github.com/Snawoot/hola-proxy
@@ -36,8 +38,6 @@ Secure proxy compatible with Crunchyroll: https://github.com/Snawoot/hola-proxy
 - BLUE: agent_key
 - PURPLE: host
 - YELLOW: port
-
-
 
 ## Examples
 
