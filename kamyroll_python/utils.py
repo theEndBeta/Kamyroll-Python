@@ -103,7 +103,7 @@ def save_config(config):
 def get_locale(config):
     bucket = config.get('configuration').get('token').get('bucket')
     country_code = bucket.split('/')[1]
-    items = ['en-US', 'en-GB', 'es-419', 'es-ES', 'pt-BR', 'pt-PT', 'fr-FR', 'de-DE', 'ar-SA', 'it-I', 'ru-RU']
+    items = ['en-US', 'en-GB', 'es-419', 'es-ES', 'pt-BR', 'pt-PT', 'fr-FR', 'de-DE', 'ar-SA', 'it-IT', 'ru-RU']
     locale = items[0]
     for item in items:
         country = item.split('-')[1].strip()
@@ -214,7 +214,7 @@ def get_download_type(json_download):
 
 def get_language_available(json_language):
     language_available = list()
-    items = ['', 'en-US', 'en-GB', 'es-419', 'es-ES', 'pt-BR', 'pt-PT', 'fr-FR', 'de-DE', 'ar-SA', 'it-I', 'ru-RU']
+    items = ['', 'en-US', 'en-GB', 'es-419', 'es-ES', 'pt-BR', 'pt-PT', 'fr-FR', 'de-DE', 'ar-SA', 'it-IT', 'ru-RU']
     for item in items:
         if item in json_language:
             language_available.append(item)
@@ -232,7 +232,7 @@ def check_characters(title):
 
 def get_ffmpeg_language(code):
     language = 'jpn'
-    language_code = ['en-US', 'en-GB', 'es-419', 'es-ES', 'pt-BR', 'pt-PT', 'fr-FR', 'de-DE', 'ar-SA', 'it-I', 'ru-RU',
+    language_code = ['en-US', 'en-GB', 'es-419', 'es-ES', 'pt-BR', 'pt-PT', 'fr-FR', 'de-DE', 'ar-SA', 'it-IT', 'ru-RU',
                      'jp-JP']
     ffmpeg_language = ['eng', 'bre', 'spa', 'spa', 'por', 'por', 'fra', 'deu', 'ara', 'ita', 'rus', 'jpn']
     for i in range(len(language_code)):
@@ -248,7 +248,7 @@ def create_folder(path):
 
 
 def get_language_title(code):
-    language_code = ['en-US', 'en-GB', 'es-419', 'es-ES', 'pt-BR', 'pt-PT', 'fr-FR', 'de-DE', 'ar-SA', 'it-I', 'ru-RU']
+    language_code = ['en-US', 'en-GB', 'es-419', 'es-ES', 'pt-BR', 'pt-PT', 'fr-FR', 'de-DE', 'ar-SA', 'it-IT', 'ru-RU']
     language_titles = ['English (US)', 'English (UK)', 'Español', 'Español (España)', 'Português (Brasil)',
                        'Português (Portugal)', 'Français (France)', 'Deutsch', 'العربية', 'Italiano', 'Русский']
     language = ''
