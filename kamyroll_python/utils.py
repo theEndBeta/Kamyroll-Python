@@ -113,6 +113,20 @@ def get_locale(config):
     return locale
 
 
+def get_metadata_genre(config):
+    bucket = config.get('configuration').get('token').get('bucket')
+    country_code = bucket.split('/')[1]
+    list_language = ['en-US', 'en-GB', 'es-419', 'es-ES', 'pt-BR', 'pt-PT', 'fr-FR', 'de-DE', 'ar-SA', 'it-IT', 'ru-RU']
+    list_genre = ['Animation', 'Animation', 'Animación', 'Animación', 'Animação', 'Animação', 'Animation', 'Animation', 'تنشيط', 'Animazione', 'Анимация']
+    genre = list_genre[0]
+    for i in range(len(list_language)):
+        country = list_language[i].split('-')[1].strip()
+        if country_code == country:
+            genre = list_genre[i]
+            break
+    return genre
+
+
 def get_token(config):
     year = datetime.now().year
     month = datetime.now().month
@@ -232,8 +246,7 @@ def check_characters(title):
 
 def get_ffmpeg_language(code):
     language = 'jpn'
-    language_code = ['en-US', 'en-GB', 'es-419', 'es-ES', 'pt-BR', 'pt-PT', 'fr-FR', 'de-DE', 'ar-SA', 'it-IT', 'ru-RU',
-                     'jp-JP']
+    language_code = ['en-US', 'en-GB', 'es-419', 'es-ES', 'pt-BR', 'pt-PT', 'fr-FR', 'de-DE', 'ar-SA', 'it-IT', 'ru-RU', 'jp-JP']
     ffmpeg_language = ['eng', 'bre', 'spa', 'spa', 'por', 'por', 'fra', 'deu', 'ara', 'ita', 'rus', 'jpn']
     for i in range(len(language_code)):
         if code == language_code[i]:
@@ -249,8 +262,7 @@ def create_folder(path):
 
 def get_language_title(code):
     language_code = ['en-US', 'en-GB', 'es-419', 'es-ES', 'pt-BR', 'pt-PT', 'fr-FR', 'de-DE', 'ar-SA', 'it-IT', 'ru-RU']
-    language_titles = ['English (US)', 'English (UK)', 'Español', 'Español (España)', 'Português (Brasil)',
-                       'Português (Portugal)', 'Français (France)', 'Deutsch', 'العربية', 'Italiano', 'Русский']
+    language_titles = ['English (US)', 'English (UK)', 'Español', 'Español (España)', 'Português (Brasil)', 'Português (Portugal)', 'Français (France)', 'Deutsch', 'العربية', 'Italiano', 'Русский']
     language = ''
     for i in range(len(language_code)):
         if code == language_code[i]:
