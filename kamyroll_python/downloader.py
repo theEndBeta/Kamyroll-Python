@@ -127,8 +127,7 @@ class crunchyroll:
                 if os.path.exists(os.path.join(path, '{}.{}'.format(output, extension))):
                     utils.print_msg('WARRING: Video already exists.', 2)
                 else:
-                    utils.print_msg('[debug] Download resolution: [{}]'.format(
-                        self.config.get('preferences').get('video').get('resolution')), 0)
+                    utils.print_msg('[debug] Download resolution: [{}]'.format(self.config.get('preferences').get('video').get('resolution')), 0)
                     try:
                         os.system(' '.join(command))
                         utils.print_msg('[debug] Downloaded video', 0)
