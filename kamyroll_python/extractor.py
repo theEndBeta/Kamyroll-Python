@@ -139,8 +139,7 @@ def episode(json_episode, season_id, config):
         utils.print_msg(
             '{0:<15} {1:<10} {2:<10} {3:<15} {4:<40}'.format('ID', 'Season', 'Episode', 'Premium only', 'Title'), 0)
         for i in range(len(list_id)):
-            utils.print_msg(
-                '{0:<15} {1:<10} {2:<10} {3:<15} {4:<40}'.format(list_id[i], list_season[i], list_episode[i], utils.boolean_to_str(list_premium_only[i]), list_title[i]), 0)
+            utils.print_msg('{0:<15} {1:<10} {2:<10} {3:<15} {4:<40}'.format(list_id[i], list_season[i], list_episode[i], utils.boolean_to_str(list_premium_only[i]), list_title[i]), 0)
 
 
 def download_url(json_stream, config):
@@ -214,7 +213,6 @@ def get_metadata(type, id, config):
     if type == 'episodes':
         series_id = r.get('series_id')
         series_title = r.get('series_title')
-        season_title = r.get('season_title')
         season_number = r.get('season_number')
         episode = r.get('episode')
         title = r.get('title')
@@ -226,7 +224,6 @@ def get_metadata(type, id, config):
         episode_air_date = datetime.strptime(episode_air_date, '%Y-%m-%dT%H:%M:%SZ')
 
         series_title = utils.check_characters(series_title)
-        season_title = utils.check_characters(season_title)
         title = utils.check_characters(title)
         description = utils.check_characters(description)
 
@@ -235,15 +232,14 @@ def get_metadata(type, id, config):
 
         path = config.get('preferences').get('download').get('path')
         if path is None:
-            path = os.path.join(series_title, season_title)
+            path = os.path.join(series_title, 'Season {}'.format(season_number))
         else:
-            path = os.path.join(path, series_title, season_title)
+            path = os.path.join(path, series_title, 'Season {}'.format(season_number))
 
         output = '[S{}.Ep{}] {} - {}'.format(season_number, episode, series_title, title)
 
-        metadata += ['-metadata', 'genre="Anime"',
-                     '-metadata', 'date="{}"'.format(episode_air_date.year),
-                     '-metadata', 'creation_time="{}"'.format(episode_air_date),
+        metadata += ['-metadata', 'genre="{}"'.format(utils.get_metadata_genre(config)),
+                     '-metadata', 'date="{}"'.format(episode_air_date),
                      '-metadata', 'show="{}"'.format(series_title),
                      '-metadata', 'season_number="{}"'.format(season_number),
                      '-metadata', 'episode_sort="{}"'.format(episode),
@@ -267,7 +263,7 @@ def get_metadata(type, id, config):
             path = os.path.join(path, title)
 
         output = '[Movie] {}'.format(title)
-        metadata += ['-metadata', 'genre="Anime"',
+        metadata += ['-metadata', 'genre="{}"'.format(utils.get_metadata_genre(config)),
                      '-metadata', 'title="{}"'.format(title),
                      '-metadata', 'description="{}"'.format(description)]
     else:
