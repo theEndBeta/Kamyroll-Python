@@ -1,9 +1,9 @@
 import os
 import sys
 import requests
-import converter
-import extractor
-import utils
+from . import converter
+from . import extractor
+from . import utils
 
 
 def image(output, url):

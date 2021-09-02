@@ -2,9 +2,10 @@ import argparse
 import sys
 from colorama import init
 import termcolor
-import api
-import downloader
-import utils
+
+from . import api
+from . import downloader
+from . import utils
 
 
 def main():

@@ -1,7 +1,7 @@
 import sys
 import requests
-import extractor
-import utils
+from . import extractor
+from . import utils
 
 
 class crunchyroll:
