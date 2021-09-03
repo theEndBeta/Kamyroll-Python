@@ -12,6 +12,7 @@ Kamyroll-python is the python version of the program used in the application [Ka
 - Available for all platforms (macOS, Windows, Linux, etc.)
 - Download all available episodes and movies
 - Videos in mp4, mkv with or without Hardsub
+- Premium bypass (windows version only)
 
 ## Requirements
 - [ffmpeg](https://www.ffmpeg.org)
@@ -26,6 +27,7 @@ Kamyroll-python is the python version of the program used in the application [Ka
  - To use the script log in with your email or username and your Crunchyroll password.
  - Configure your configuration file according to your preferences.
  - If you don't have Python, you can use the compiler version for Windows.
+ - Use the premium bypass to download the premium videos.
 
 ## Preferences
 
@@ -84,6 +86,15 @@ kamyroll.py --connect
 or
 ```
 kamyroll.py -c
+```
+
+### Premium bypass (windows version only)
+```
+kamyroll --bypass
+```
+or
+```
+kamyroll -b
 ```
 
 ### Search a series, films, episode
