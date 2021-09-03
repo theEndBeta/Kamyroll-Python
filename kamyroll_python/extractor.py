@@ -139,7 +139,8 @@ def episode(json_episode, season_id, config):
         utils.print_msg(
             '{0:<15} {1:<10} {2:<10} {3:<15} {4:<40}'.format('ID', 'Season', 'Episode', 'Premium only', 'Title'), 0)
         for i in range(len(list_id)):
-            utils.print_msg('{0:<15} {1:<10} {2:<10} {3:<15} {4:<40}'.format(list_id[i], list_season[i], list_episode[i], utils.boolean_to_str(list_premium_only[i]), list_title[i]), 0)
+            utils.print_msg(
+                '{0:<15} {1:<10} {2:<10} {3:<15} {4:<40}'.format(list_id[i], list_season[i], list_episode[i], utils.boolean_to_str(list_premium_only[i]), list_title[i]), 0)
 
 
 def download_url(json_stream, config):
