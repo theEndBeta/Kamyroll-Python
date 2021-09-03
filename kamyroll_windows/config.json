@@ -12,11 +12,11 @@
             "expires": ""
         },
         "account": {
-            "account_id": "",
-            "external_id": "",
-            "email": "",
-            "password": "",
-            "username": ""
+            "account_id": null,
+            "external_id": null,
+            "email": null,
+            "password": null,
+            "username": null
         }
     },
     "preferences": {
@@ -26,7 +26,7 @@
             "path": "Downloads"
         },
         "subtitles": {
-            "language": "",
+            "language": "en-US",
             "ass": true,
             "vtt": false,
             "srt": false
