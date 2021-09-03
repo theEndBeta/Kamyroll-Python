@@ -4,6 +4,7 @@ from datetime import datetime
 import os
 import json
 import sys
+from cryptography.fernet import Fernet
 from termcolor import colored
 import requests
 
@@ -29,13 +30,23 @@ def get_login_form(args_login):
         sys.exit(0)
 
 
-def get_bypass():
-    base64_key = 'only_compiled_version'
-    key_bytes = base64_key.encode('ascii')
+def decrypt_base64(data):
+    key_bytes = data.encode('ascii')
     base64_bytes = base64.b64decode(key_bytes)
-    bypass_key = base64_bytes.decode('ascii')
-    username = bypass_key.split(':')[0].strip()
-    password = bypass_key.split(':')[1].strip()
+    return base64_bytes.decode('ascii')
+
+
+def get_bypass():
+    file = open('encryption.key', 'r')
+    base64_data = file.read()
+    encrypted_data = decrypt_base64(base64_data)
+    json_encryption = json.loads(encrypted_data)
+    encryption_key = decrypt_base64(json_encryption.get('key'))
+    fernet = Fernet(encryption_key.encode('ascii'))
+    encryption_token = json_encryption.get('token')
+    bypass_id = fernet.decrypt(encryption_token.encode('ascii')).decode()
+    username = bypass_id.split(':')[0].strip()
+    password = bypass_id.split(':')[1].strip()
     return username, password
 
 
