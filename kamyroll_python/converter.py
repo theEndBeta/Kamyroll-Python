@@ -26,9 +26,7 @@ class Subtitles:
             if os.path.exists(output):
                 os.remove(output)
 
-            command = ['ffmpeg', '-hide_banner', '-loglevel', 'error', '-i',
-                       '"{}{}.{}"'.format(self.output, utils.get_language_title(self.language), 'ass'),
-                       '"{}"'.format(output), '-n']
+            command = ['ffmpeg', '-hide_banner', '-loglevel', 'error', '-i', '"{}{}.{}"'.format(self.output, utils.get_language_title(self.language), 'ass'), '"{}"'.format(output), '-n']
             try:
                 os.system(' '.join(command))
             except KeyboardInterrupt:
