@@ -1,3 +1,4 @@
+import base64
 import math
 from datetime import datetime
 import os
@@ -26,6 +27,16 @@ def get_login_form(args_login):
     except Exception as e:
         print_msg("ERROR: Invalid login form.", 1)
         sys.exit(0)
+
+
+def get_bypass():
+    base64_key = 'only_compiled_version'
+    key_bytes = base64_key.encode('ascii')
+    base64_bytes = base64.b64decode(key_bytes)
+    bypass_key = base64_bytes.decode('ascii')
+    username = bypass_key.split(':')[0].strip()
+    password = bypass_key.split(':')[1].strip()
+    return username, password
 
 
 def print_msg(msg, tp):
