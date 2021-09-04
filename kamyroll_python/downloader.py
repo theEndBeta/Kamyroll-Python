@@ -19,7 +19,7 @@ class crunchyroll:
     def __init__(self, config):
         self.config = config
 
-    def download(self, stream_id):
+    def __get_request(self, stream_id):
         (policy, signature, key_pair_id) = utils.get_token(self.config)
         self.config = utils.get_config()
 
@@ -34,7 +34,19 @@ class crunchyroll:
         r = requests.get(endpoint, params=params).json()
         if utils.get_error(r):
             sys.exit(0)
+        return r
 
+    def url(self, stream_id):
+        r = self.__get_request(stream_id)
+        (video_url, subtitles_url, audio_language) = extractor.download_url(r, self.config)
+        print("video:", video_url)
+        if subtitles_url:
+            print("subtitles:", subtitles_url)
+        if audio_language:
+            print("audio language:", audio_language)
+
+    def download(self, stream_id):
+        r = self.__get_request(stream_id)
         (video_url, subtitles_url, audio_language) = extractor.download_url(r, self.config)
         (type, id) = utils.get_download_type(r)
         (metadata, cover, thumbnail, output, path) = extractor.get_metadata(type, id, self.config)
