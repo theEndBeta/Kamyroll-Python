@@ -89,7 +89,18 @@ class crunchyroll:
                 index = 0
                 subs = list()
 
-                command = ['ffmpeg', '-hide_banner', '-v', 'warning', '-stats', '-i', '"{}"'.format(video_url)]
+                command = [
+                    'ffmpeg',
+                    '-hide_banner',
+                    '-v', 'warning',
+                    '-stats',
+                    '-reconnect', '1',
+                    '-reconnect_streamed', '1',
+                    '-reconnect_on_network_error', '1',
+                    '-max_reload', '2147483647',
+                    '-m3u8_hold_counters', '2147483647',
+                    '-i', '"{}"'.format(video_url)
+                ]
                 if extension == 'mkv':
                     if self.config.get('preferences').get('download').get('subtitles'):
                         subtitles_path = os.path.join(path, '{}{}'.format(output, utils.get_language_title(self.config.get('preferences').get('subtitles').get('language'))))
