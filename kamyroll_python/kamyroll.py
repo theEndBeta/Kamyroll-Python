@@ -19,6 +19,7 @@ def main():
     parser.add_argument('--episode',    '-e',   type=str,               help='Show episodes of a season')
     parser.add_argument('--movie',      '-m',   type=str,               help='Show movies from a movie list')
     parser.add_argument('--download',   '-d',   type=str,               help='Download an episode or movie')
+    parser.add_argument('--url',        '-u',   type=str,               help='Show media url of episode or movie')
     args = parser.parse_args()
 
     try:
@@ -54,6 +55,9 @@ def main():
     elif args.download:
         cr_dl = downloader.crunchyroll(config)
         cr_dl.download(args.download)
+    elif args.url:
+        cr_dl = downloader.crunchyroll(config)
+        cr_dl.url(args.url)
 
 
 if __name__ == '__main__':
