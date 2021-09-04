@@ -17,6 +17,7 @@ colorama = "*"
 termcolor = "*"
 pyxdg = "*"
 pysocks = "*"
+cryptography = "*"
 
 [requires]
 python_version = "3.9"
