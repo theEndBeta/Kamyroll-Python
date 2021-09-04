@@ -55,7 +55,7 @@ def get_bypass():
 
 def print_msg(msg, tp):
     if tp == 0 or tp is None:
-        msg = colored(msg, 'white')
+        msg = colored(msg)
     elif tp == 1:
         msg = colored(msg, 'red')
     elif tp == 2:
