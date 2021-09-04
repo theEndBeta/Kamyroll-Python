@@ -66,7 +66,7 @@ Secure proxy compatible with Crunchyroll: https://github.com/Snawoot/hola-proxy
 #### Command
 - RED: Selected region
   
-#### Proxy in config.json
+#### Proxy in $HOME/.config/kamyroll.json
 - GREEN: uuid
 - BLUE: agent\_key
 - PURPLE: host

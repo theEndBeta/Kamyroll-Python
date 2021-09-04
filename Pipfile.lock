@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "120c18d9a3ca3a5a11ec04a4b63a6bcdac7b0cd0fe928c13cddcdc9cb6ccb4a3"
+            "sha256": "9edea0b74a843e18ffdc4401b11822b931965f7476149dc2c8f4560b9b43d0d2"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -50,6 +50,14 @@
         "kamyroll-python": {
             "editable": true,
             "path": "."
+        },
+        "pyxdg": {
+            "hashes": [
+                "sha256:2d6701ab7c74bbab8caa6a95e0a0a129b1643cf6c298bf7c569adec06d0709a0",
+                "sha256:80bd93aae5ed82435f20462ea0208fb198d8eec262e831ee06ce9ddb6b91c5a5"
+            ],
+            "index": "pypi",
+            "version": "==0.27"
         },
         "requests": {
             "hashes": [

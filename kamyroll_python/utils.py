@@ -5,13 +5,15 @@ import os
 import json
 import sys
 from cryptography.fernet import Fernet
+from xdg import BaseDirectory
 from termcolor import colored
 import requests
 
 
 def get_config():
-    if os.path.exists('config.json'):
-        file = open('config.json', 'r')
+    config_path = BaseDirectory.load_first_config("kamyroll.json")
+    if config_path:
+        file = open(config_path, 'r')
         config = json.load(file)
         file.close()
         return config
@@ -118,7 +120,8 @@ def get_headers(config):
 
 
 def save_config(config):
-    file = open('config.json', 'w', encoding='utf8')
+    config_path = BaseDirectory.load_first_config("kamyroll.json")
+    file = open(config_path, 'w', encoding='utf8')
     file.write(json.dumps(config, indent=4, sort_keys=False, ensure_ascii=False))
     file.close()
 
