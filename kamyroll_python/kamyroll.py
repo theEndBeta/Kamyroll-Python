@@ -39,9 +39,9 @@ def main():
             utils.print_msg('ERROR: No login is configured.', 1)
             sys.exit(0)
         cr_api.login(username, password, False)
-    elif args.bypass:
-        (username, password) = utils.get_bypass()
-        cr_api.login(username, password, True)
+    # elif args.bypass:
+    #     (username, password) = utils.get_bypass()
+    #     cr_api.login(username, password, True)
     elif args.search:
         cr_api.search(args.search)
     elif args.season:
