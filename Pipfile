@@ -16,6 +16,7 @@ requests = "*"
 colorama = "*"
 termcolor = "*"
 pyxdg = "*"
+pysocks = "*"
 
 [requires]
 python_version = "3.9"

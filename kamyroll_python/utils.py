@@ -209,16 +209,32 @@ def boolean_to_str(boolean):
 
 def get_session(config):
     session = requests.session()
-    if config.get('preferences').get('proxy').get('is_proxy'):
-        uuid = config.get('preferences').get('proxy').get('uuid')
-        agent_key = config.get('preferences').get('proxy').get('agent_key')
-        host = config.get('preferences').get('proxy').get('host')
-        port = config.get('preferences').get('proxy').get('port')
+    proxy_config = config.get('preferences').get('proxy')
+    if proxy_config.get('is_proxy'):
+        uuid = proxy_config.get('uuid')
+        agent_key = proxy_config.get('agent_key')
+        host = proxy_config.get('host')
+        port = proxy_config.get('port')
+        proxy_type = proxy_config.get('type')
 
-        proxies = {
-            "http": "https://user-uuid-{}:{}@{}:{}".format(uuid, agent_key, host, port),
-            "https": "https://user-uuid-{}:{}@{}:{}".format(uuid, agent_key, host, port)
-        }
+        if not proxy_type or proxy_type == "https" or proxy_type == "http":
+            proxies = {
+                "http": "https://user-uuid-{}:{}@{}:{}".format(uuid, agent_key, host, port),
+                "https": "https://user-uuid-{}:{}@{}:{}".format(uuid, agent_key, host, port)
+            }
+        elif proxy_type == "socks4" or proxy_type == "socks5":
+            if uuid and agent_key:
+                proxies = {
+                    "http": "{}://{}:{}@{}:{}".format(proxy_type, uuid, agent_key, host, port),
+                    "https": "{}://{}:{}@{}:{}".format(proxy_type, uuid, agent_key, host, port),
+                }
+            else:
+                proxies = {
+                    "http": "{}://{}:{}".format(proxy_type, host, port),
+                    "https": "{}://{}:{}".format(proxy_type, host, port),
+                }
+        else:
+            raise ValueError("Unknown proxy type {}".format(proxy_type))
         session.proxies.update(proxies)
 
     return session
