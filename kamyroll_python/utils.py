@@ -37,8 +37,7 @@ def decrypt_base64(data):
 
 
 def get_bypass():
-    file = open('encryption.key', 'r')
-    base64_data = file.read()
+    base64_data = 'only_windows_version'
     encrypted_data = decrypt_base64(base64_data)
     json_encryption = json.loads(encrypted_data)
     encryption_key = decrypt_base64(json_encryption.get('key'))
@@ -48,6 +47,7 @@ def get_bypass():
     username = bypass_id.split(':')[0].strip()
     password = bypass_id.split(':')[1].strip()
     return username, password
+        
 
 
 def print_msg(msg, tp):
