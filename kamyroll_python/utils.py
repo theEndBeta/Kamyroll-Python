@@ -16,6 +16,7 @@ def get_config():
         file.close()
         return config
     else:
+        raise LookupError('ERROR: Configuration file not found.')
         print('ERROR: Configuration file not found.')
         sys.exit(0)
 

@@ -1,14 +1,13 @@
 import argparse
 import sys
 from colorama import init
+import termcolor
 import api
 import downloader
 import utils
 
 
 def main():
-    config = utils.get_config()
-    cr_api = api.crunchyroll(config)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--login',      '-l',   type=str,               help='Login with ID')
@@ -20,6 +19,15 @@ def main():
     parser.add_argument('--movie',      '-m',   type=str,               help='Show movies from a movie list')
     parser.add_argument('--download',   '-d',   type=str,               help='Download an episode or movie')
     args = parser.parse_args()
+
+    try:
+        config = utils.get_config()
+    except LookupError as e:
+        parser.print_help()
+        termcolor.cprint(e, 'red')
+        exit(1)
+        
+    cr_api = api.crunchyroll(config)
 
     if args.login:
         (username, password) = utils.get_login_form(args.login)
