@@ -29,6 +29,7 @@ Kamyroll-python is the python version of the program used in the application [Ka
     `pip install requests`  
     `pip install colorama`  
     `pip install termcolor`  
+    `pip install cryptography` 
 
 ## Information
  - To use the script log in with your email or username and your Crunchyroll password.
