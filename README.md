@@ -1,7 +1,7 @@
-<img src="https://github.com/hyugogirubato/Kamyroll-python/blob/main/Presentation/img_title.png" width="20%"></img>
+![Kamyroll_Python](/Presentation/img_title.png)
 
 ## Description
-Kamyroll-python is the python version of the program used in the application [Kamyroll](https://github.com/hyugogirubato/Kamyroll). This will allow you to download the videos and subtitles proposed by the crunchyroll catalog or MP4 and ASS format to allow you to view the videos on all your devices without connection.
+Kamyroll-python is the python version of the program used in the application [Kamyroll](https://github.com/hyugogirubato/Kamyroll). This will allow you to download the videos and subtitles proposed by the Crunchyroll catalog or MP4 and ASS format to allow you to view the videos on all your devices without connection.
  
 ## Features
 - Download videos in all resolutions
@@ -18,10 +18,17 @@ Kamyroll-python is the python version of the program used in the application [Ka
 - [ffmpeg](https://www.ffmpeg.org)
 - [Python](https://www.python.org/downloads) 3+
 
-### Installation
-`pip install requests`  
-`pip install colorama`  
-`pip install termcolor`  
+## Installation
+
+- Run 
+
+    ```pip install -r requirements.txt```
+
+- Or install them manually by:
+
+    `pip install requests`  
+    `pip install colorama`  
+    `pip install termcolor`  
 
 ## Information
  - To use the script log in with your email or username and your Crunchyroll password.
@@ -33,6 +40,7 @@ Kamyroll-python is the python version of the program used in the application [Ka
 ## Preferences
 
 #### Video resolution
+
 Resolution | Quality
 ------------ | -------------
 "1080" | FHD
@@ -42,6 +50,7 @@ Resolution | Quality
 "240" | SD
 
 #### Subtitle language 
+
 Language | Title
 ------------ | -------------
 "" | Without subtitles
@@ -59,7 +68,8 @@ Language | Title
 
 ## Proxy configuration
 Secure proxy compatible with Crunchyroll: https://github.com/Snawoot/hola-proxy
-<img src="https://github.com/hyugogirubato/Kamyroll-Python/blob/main/Presentation/img_proxy.png" width="80%"></img>  
+![proxy_example](/Presentation/img_proxy.png)
+
 #### Command
 - RED: Selected region
   
@@ -89,7 +99,7 @@ or
 kamyroll.py -c
 ```
 
-### Premium bypass (windows version only)
+### Premium bypass (Windows version only)
 ```
 kamyroll --bypass
 ```
@@ -139,6 +149,6 @@ or
 kamyroll.py -d "EPISODE_ID or MOVIE_ID"
 ```
 
------------------
+---
 *This script was created by the [__Nashi Team__](https://sites.google.com/view/kamyroll/home).  
 Find us on [discord](https://discord.com/invite/g6JzYbh) for more information on projects in development.*
