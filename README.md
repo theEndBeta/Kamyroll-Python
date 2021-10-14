@@ -13,6 +13,7 @@ Kamyroll-python is the python version of the program used in the application [Ka
 - Download all available episodes and movies
 - Videos in mp4, mkv with or without Hardsub
 - Premium bypass (windows version only)
+- Download episodes by interval or number (bash download)
 
 ## Requirements
 - [ffmpeg](https://www.ffmpeg.org)
@@ -41,6 +42,17 @@ Resolution | Quality
 "480" | SD
 "360" | SD
 "240" | SD
+
+#### Playlist selection
+
+Resolution | Quality
+------------ | -------------
+"[3:]" | Take all episodes after 3
+"[2:4]" | Take episodes 2 to 4 included
+"[-2]" | Take the penultimate episode from the list
+"[-2:]" | Take all the last episode from the penultimate
+"[:-2]" | Take all episodes except the last 2
+"8" | Take episode 8
 
 #### Subtitle language 
 
@@ -140,6 +152,15 @@ kamyroll --download "EPISODE_ID or MOVIE_ID"
 or
 ```
 kamyroll -d "EPISODE_ID or MOVIE_ID"
+```
+
+### Download playlist (bash download)
+```
+kamyroll --download "SEASON_ID" --playlist "[START:END]"
+```
+or
+```
+kamyroll -d "SEASON_ID" -p "[START:END]"
 ```
 
 ---
