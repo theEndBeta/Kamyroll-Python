@@ -2,10 +2,10 @@ from setuptools import setup
 
 setup(
     name="Kamyroll-Python",
-    version="0.0.1",
+    version="0.0.2",
     description="Download shows from crunchyroll",
     url="https://github.com/hyugogirubato/Kamyroll-Python",
-    author="Hyugo Girubato",
+    author="hyugogirubato",
     license="MIT",
     scripts=["bin/kamyroll"],
     packages=["kamyroll_python"],
