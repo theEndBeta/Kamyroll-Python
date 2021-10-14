@@ -58,6 +58,8 @@ def main():
     elif args.url:
         cr_dl = downloader.crunchyroll(config)
         cr_dl.url(args.url)
+    else:
+        parser.print_help()
 
 
 if __name__ == '__main__':

@@ -3,7 +3,6 @@ import requests
 from . import extractor
 from . import utils
 
-
 class crunchyroll:
 
     def __init__(self, config):

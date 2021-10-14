@@ -8,7 +8,9 @@ from cryptography.fernet import Fernet
 from xdg import BaseDirectory
 from termcolor import colored
 import requests
+from pathlib import Path
 
+src_path = Path(__file__).parent.absolute()
 
 def get_config():
     config_path = BaseDirectory.load_first_config("kamyroll.json")
@@ -18,10 +20,18 @@ def get_config():
         file.close()
         return config
     else:
-        raise LookupError('ERROR: Configuration file not found.')
-        print('ERROR: Configuration file not found.')
-        sys.exit(0)
+        message = create_config()
+        raise LookupError(f'{message} \nERROR: Configuration file not found.')
 
+def create_config():
+    config_path = os.path.join(BaseDirectory.xdg_config_home, 'kamyroll.json')
+
+    with open(config_path, 'w') as config_file:
+        with open(os.path.join(src_path, 'config.json')) as starter_config:
+            starter_data = json.load(starter_config)
+            json.dump(starter_data, config_file, indent=4)
+
+    return f'Created config file at {config_path}. Please run the login command to populate the entries.'
 
 def get_login_form(args_login):
     try:
@@ -117,7 +127,6 @@ def get_error(json_request):
 
 def get_headers(config):
     return {'User-Agent': config.get('configuration').get('user_agent'), 'Content-Type': 'application/x-www-form-urlencoded'}
-
 
 def save_config(config):
     config_path = BaseDirectory.load_first_config("kamyroll.json")
@@ -223,7 +232,7 @@ def get_session(config):
                 "https": "https://user-uuid-{}:{}@{}:{}".format(uuid, agent_key, host, port)
             }
         elif proxy_type == "socks4" or proxy_type == "socks5":
-            if uuid and agent_type:
+            if uuid: # and agent_type: # agent type is not defined?
                 proxies = {
                     "http": "{}://{}:{}@{}:{}".format(proxy_type, uuid, agent_key, host, port),
                     "https": "{}://{}:{}@{}:{}".format(proxy_type, uuid, agent_key, host, port),
