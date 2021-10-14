@@ -2,9 +2,10 @@ import argparse
 import sys
 from colorama import init
 import termcolor
-import api
-import downloader
-import utils
+
+from . import api
+from . import downloader
+from . import utils
 
 
 def main():
@@ -18,6 +19,7 @@ def main():
     parser.add_argument('--episode',    '-e',   type=str,               help='Show episodes of a season')
     parser.add_argument('--movie',      '-m',   type=str,               help='Show movies from a movie list')
     parser.add_argument('--download',   '-d',   type=str,               help='Download an episode or movie')
+    parser.add_argument('--url',        '-u',   type=str,               help='Show media url of episode or movie')
     args = parser.parse_args()
 
     try:
@@ -39,9 +41,9 @@ def main():
             utils.print_msg('ERROR: No login is configured.', 1)
             sys.exit(0)
         cr_api.login(username, password, False)
-    elif args.bypass:
-        (username, password) = utils.get_bypass()
-        cr_api.login(username, password, True)
+    # elif args.bypass:
+    #     (username, password) = utils.get_bypass()
+    #     cr_api.login(username, password, True)
     elif args.search:
         cr_api.search(args.search)
     elif args.season:
@@ -53,6 +55,11 @@ def main():
     elif args.download:
         cr_dl = downloader.crunchyroll(config)
         cr_dl.download(args.download)
+    elif args.url:
+        cr_dl = downloader.crunchyroll(config)
+        cr_dl.url(args.url)
+    else:
+        parser.print_help()
 
 
 if __name__ == '__main__':

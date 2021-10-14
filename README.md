@@ -18,18 +18,10 @@ Kamyroll-python is the python version of the program used in the application [Ka
 - [ffmpeg](https://www.ffmpeg.org)
 - [Python](https://www.python.org/downloads) 3+
 
-## Installation
-
-- Run 
-
-    ```pip install -r requirements.txt```
-
-- Or install them manually by:
-
-    `pip install requests`  
-    `pip install colorama`  
-    `pip install termcolor`  
-    `pip install cryptography` 
+### Installation
+```bash
+pip install kamyroll_python
+```
 
 ## Information
  - To use the script log in with your email or username and your Crunchyroll password.
@@ -74,9 +66,9 @@ Secure proxy compatible with Crunchyroll: https://github.com/Snawoot/hola-proxy
 #### Command
 - RED: Selected region
   
-#### Proxy in config.json
+#### Proxy in $HOME/.config/kamyroll.json
 - GREEN: uuid
-- BLUE: agent_key
+- BLUE: agent\_key
 - PURPLE: host
 - YELLOW: port
 
@@ -84,20 +76,20 @@ Secure proxy compatible with Crunchyroll: https://github.com/Snawoot/hola-proxy
 
 ### Login with ID
 ```
-kamyroll.py --login "MAIL:PASSWORD"
+kamyroll --login "MAIL:PASSWORD"
 ```
 or
 ```
-kamyroll.py -l "MAIL:PASSWORD"
+kamyroll -l "MAIL:PASSWORD"
 ```
 
 ### Login with configured ID
 ```
-kamyroll.py --connect
+kamyroll --connect
 ```
 or
 ```
-kamyroll.py -c
+kamyroll -c
 ```
 
 ### Premium bypass (Windows version only)
@@ -111,43 +103,43 @@ kamyroll -b
 
 ### Search a series, films, episode
 ```
-kamyroll.py --search "QUERY"
+kamyroll --search "QUERY"
 ```
 
 ### Show seasons of a series
 ```
-kamyroll.py --season "SERIES_ID"
+kamyroll --season "SERIES_ID"
 ```
 or
 ```
-kamyroll.py -s "SERIES_ID"
+kamyroll -s "SERIES_ID"
 ```
 
 ### Show episodes of a season
 ```
-kamyroll.py --episode "SEASON_ID"
+kamyroll --episode "SEASON_ID"
 ```
 or
 ```
-kamyroll.py -e "SEASON_ID"
+kamyroll -e "SEASON_ID"
 ```
 
 ### Show movies from a movie list
 ```
-kamyroll.py --movie "MOVIE_ID"
+kamyroll --movie "MOVIE_ID"
 ```
 or
 ```
-kamyroll.py -m "MOVIE_ID"
+kamyroll -m "MOVIE_ID"
 ```
 
 ### Download an episode or movie
 ```
-kamyroll.py --download "EPISODE_ID or MOVIE_ID"
+kamyroll --download "EPISODE_ID or MOVIE_ID"
 ```
 or
 ```
-kamyroll.py -d "EPISODE_ID or MOVIE_ID"
+kamyroll -d "EPISODE_ID or MOVIE_ID"
 ```
 
 ---

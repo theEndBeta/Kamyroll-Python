@@ -1,9 +1,9 @@
 import os
 import sys
 import requests
-import converter
-import extractor
-import utils
+from . import converter
+from . import extractor
+from . import utils
 
 
 def image(output, url):
@@ -19,7 +19,7 @@ class crunchyroll:
     def __init__(self, config):
         self.config = config
 
-    def download(self, stream_id):
+    def __get_request(self, stream_id):
         (policy, signature, key_pair_id) = utils.get_token(self.config)
         self.config = utils.get_config()
 
@@ -34,7 +34,19 @@ class crunchyroll:
         r = requests.get(endpoint, params=params).json()
         if utils.get_error(r):
             sys.exit(0)
+        return r
 
+    def url(self, stream_id):
+        r = self.__get_request(stream_id)
+        (video_url, subtitles_url, audio_language) = extractor.download_url(r, self.config)
+        print("video:", video_url)
+        if subtitles_url:
+            print("subtitles:", subtitles_url)
+        if audio_language:
+            print("audio language:", audio_language)
+
+    def download(self, stream_id):
+        r = self.__get_request(stream_id)
         (video_url, subtitles_url, audio_language) = extractor.download_url(r, self.config)
         (type, id) = utils.get_download_type(r)
         (metadata, cover, thumbnail, output, path) = extractor.get_metadata(type, id, self.config)
@@ -77,7 +89,18 @@ class crunchyroll:
                 index = 0
                 subs = list()
 
-                command = ['ffmpeg', '-hide_banner', '-v', 'warning', '-stats', '-i', '"{}"'.format(video_url)]
+                command = [
+                    'ffmpeg',
+                    '-hide_banner',
+                    '-v', 'warning',
+                    '-stats',
+                    '-reconnect', '1',
+                    '-reconnect_streamed', '1',
+                    '-reconnect_on_network_error', '1',
+                    '-max_reload', '2147483647',
+                    '-m3u8_hold_counters', '2147483647',
+                    '-i', '"{}"'.format(video_url)
+                ]
                 if extension == 'mkv':
                     if self.config.get('preferences').get('download').get('subtitles'):
                         subtitles_path = os.path.join(path, '{}{}'.format(output, utils.get_language_title(self.config.get('preferences').get('subtitles').get('language'))))

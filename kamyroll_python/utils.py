@@ -5,21 +5,33 @@ import os
 import json
 import sys
 from cryptography.fernet import Fernet
+from xdg import BaseDirectory
 from termcolor import colored
 import requests
+from pathlib import Path
 
+src_path = Path(__file__).parent.absolute()
 
 def get_config():
-    if os.path.exists('config.json'):
-        file = open('config.json', 'r')
+    config_path = BaseDirectory.load_first_config("kamyroll.json")
+    if config_path:
+        file = open(config_path, 'r')
         config = json.load(file)
         file.close()
         return config
     else:
-        raise LookupError('ERROR: Configuration file not found.')
-        print('ERROR: Configuration file not found.')
-        sys.exit(0)
+        message = create_config()
+        raise LookupError(f'{message} \nERROR: Configuration file not found.')
 
+def create_config():
+    config_path = os.path.join(BaseDirectory.xdg_config_home, 'kamyroll.json')
+
+    with open(config_path, 'w') as config_file:
+        with open(os.path.join(src_path, 'config.json')) as starter_config:
+            starter_data = json.load(starter_config)
+            json.dump(starter_data, config_file, indent=4)
+
+    return f'Created config file at {config_path}. Please run the login command to populate the entries.'
 
 def get_login_form(args_login):
     try:
@@ -53,7 +65,7 @@ def get_bypass():
 
 def print_msg(msg, tp):
     if tp == 0 or tp is None:
-        msg = colored(msg, 'white')
+        msg = colored(msg)
     elif tp == 1:
         msg = colored(msg, 'red')
     elif tp == 2:
@@ -116,9 +128,9 @@ def get_error(json_request):
 def get_headers(config):
     return {'User-Agent': config.get('configuration').get('user_agent'), 'Content-Type': 'application/x-www-form-urlencoded'}
 
-
 def save_config(config):
-    file = open('config.json', 'w', encoding='utf8')
+    config_path = BaseDirectory.load_first_config("kamyroll.json")
+    file = open(config_path, 'w', encoding='utf8')
     file.write(json.dumps(config, indent=4, sort_keys=False, ensure_ascii=False))
     file.close()
 
@@ -206,16 +218,32 @@ def boolean_to_str(boolean):
 
 def get_session(config):
     session = requests.session()
-    if config.get('preferences').get('proxy').get('is_proxy'):
-        uuid = config.get('preferences').get('proxy').get('uuid')
-        agent_key = config.get('preferences').get('proxy').get('agent_key')
-        host = config.get('preferences').get('proxy').get('host')
-        port = config.get('preferences').get('proxy').get('port')
+    proxy_config = config.get('preferences').get('proxy')
+    if proxy_config.get('is_proxy'):
+        uuid = proxy_config.get('uuid')
+        agent_key = proxy_config.get('agent_key')
+        host = proxy_config.get('host')
+        port = proxy_config.get('port')
+        proxy_type = proxy_config.get('type')
 
-        proxies = {
-            "http": "https://user-uuid-{}:{}@{}:{}".format(uuid, agent_key, host, port),
-            "https": "https://user-uuid-{}:{}@{}:{}".format(uuid, agent_key, host, port)
-        }
+        if not proxy_type or proxy_type == "https" or proxy_type == "http":
+            proxies = {
+                "http": "https://user-uuid-{}:{}@{}:{}".format(uuid, agent_key, host, port),
+                "https": "https://user-uuid-{}:{}@{}:{}".format(uuid, agent_key, host, port)
+            }
+        elif proxy_type == "socks4" or proxy_type == "socks5":
+            if uuid and agent_key:
+                proxies = {
+                    "http": "{}://{}:{}@{}:{}".format(proxy_type, uuid, agent_key, host, port),
+                    "https": "{}://{}:{}@{}:{}".format(proxy_type, uuid, agent_key, host, port),
+                }
+            else:
+                proxies = {
+                    "http": "{}://{}:{}".format(proxy_type, host, port),
+                    "https": "{}://{}:{}".format(proxy_type, host, port),
+                }
+        else:
+            raise ValueError("Unknown proxy type {}".format(proxy_type))
         session.proxies.update(proxies)
 
     return session

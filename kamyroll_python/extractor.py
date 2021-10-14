@@ -2,7 +2,7 @@ import os
 import sys
 from datetime import datetime
 import requests
-import utils
+from . import utils
 
 
 def search(json_search, config):
@@ -161,7 +161,7 @@ def download_url(json_stream, config):
             video_url = json_video.get(subtitles_language).get('url')
         else:
             if config.get('preferences').get('download').get('video'):
-                utils.print_msg('WARRNING: The language of the settings subtitles is not available for the hardsub.', 2)
+                utils.print_msg('WARNING: The language of the settings subtitles is not available for the hardsub.', 2)
     else:
         video_url = json_video.get('').get('url')
 
@@ -169,7 +169,7 @@ def download_url(json_stream, config):
         subtitles_url = json_subtitles.get(subtitles_language).get('url')
     else:
         if config.get('preferences').get('download').get('subtitles'):
-            utils.print_msg('WARRNING: The language of the settings subtitles is not available.', 2)
+            utils.print_msg('WARNING: The language of the settings subtitles is not available.', 2)
 
     if not video_url is None:
         video_url = get_m3u8_url(video_url, config)
