@@ -349,8 +349,7 @@ def check_characters(title):
 
 def get_ffmpeg_language(code):
     language = 'jpn'
-    language_code = ['en-US', 'en-GB', 'es-419', 'es-ES', 'pt-BR', 'pt-PT', 'fr-FR', 'de-DE', 'ar-SA', 'it-IT', 'ru-RU',
-                     'jp-JP']
+    language_code = ['en-US', 'en-GB', 'es-419', 'es-ES', 'pt-BR', 'pt-PT', 'fr-FR', 'de-DE', 'ar-SA', 'it-IT', 'ru-RU', 'jp-JP']
     ffmpeg_language = ['eng', 'bre', 'spa', 'spa', 'por', 'por', 'fra', 'deu', 'ara', 'ita', 'rus', 'jpn']
     for i in range(len(language_code)):
         if code == language_code[i]:
@@ -366,8 +365,7 @@ def create_folder(path):
 
 def get_language_title(code):
     language_code = ['en-US', 'en-GB', 'es-419', 'es-ES', 'pt-BR', 'pt-PT', 'fr-FR', 'de-DE', 'ar-SA', 'it-IT', 'ru-RU']
-    language_titles = ['English (US)', 'English (UK)', 'Español', 'Español (España)', 'Português (Brasil)',
-                       'Português (Portugal)', 'Français (France)', 'Deutsch', 'العربية', 'Italiano', 'Русский']
+    language_titles = ['English (US)', 'English (UK)', 'Español', 'Español (España)', 'Português (Brasil)', 'Português (Portugal)', 'Français (France)', 'Deutsch', 'العربية', 'Italiano', 'Русский']
     language = ''
     for i in range(len(language_code)):
         if code == language_code[i]:
