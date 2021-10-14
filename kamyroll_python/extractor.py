@@ -2,7 +2,7 @@ import os
 import sys
 from datetime import datetime
 import requests
-from . import utils
+import utils
 
 
 def search(json_search, config):
@@ -141,6 +141,52 @@ def episode(json_episode, season_id, config):
         for i in range(len(list_id)):
             utils.print_msg(
                 '{0:<15} {1:<10} {2:<10} {3:<15} {4:<40}'.format(list_id[i], list_season[i], list_episode[i], utils.boolean_to_str(list_premium_only[i]), list_title[i]), 0)
+
+
+def playlist(json_episode, config, playlist_episode):
+    playlist_id = list()
+    items = json_episode.get('items')
+    premium = utils.get_premium(config)
+
+    list_id = list()
+    list_title = list()
+    list_episode = list()
+    list_season = list()
+    list_premium_only = list()
+    for item in items:
+        premium_only = item.get('is_premium_only')
+        if premium_only:
+            if premium:
+                id = utils.get_stream_id(item)
+            else:
+                id = 'None'
+        else:
+            id = utils.get_stream_id(item)
+
+        list_id.append(id)
+        list_title.append(item.get('title'))
+        list_episode.append(item.get('episode'))
+        list_season.append(item.get('season_number'))
+        list_premium_only.append(premium_only)
+
+    episode_count = utils.get_episode_count(list_episode)
+    playlist_episode = utils.get_playlist_episode(playlist_episode, episode_count)
+    if len(list_id) == 0:
+        utils.print_msg('WARNING: No episode found for this season.', 2)
+    else:
+        for i in range(len(playlist_episode)):
+            if playlist_episode[i] in list_episode:
+                for e in range(len(list_episode)):
+                    if list_episode[e] == playlist_episode[i]:
+                        if list_premium_only[e] and premium == False:
+                            utils.print_msg('WARNING: Prmeium only: S{}.Ep{} - {}'.format(list_season[e], list_episode[e], list_title[e]), 2)
+                        else:
+                            utils.print_msg('INFO: Added to playlist: S{}.Ep{} - {}'.format(list_season[e], list_episode[e], list_title[e]), 0)
+                            playlist_id.append(list_id[e])
+                        break
+            else:
+                utils.print_msg('WARNING: Not found : Ep{}'.format(playlist_episode[i]), 2)
+    return playlist_id
 
 
 def download_url(json_stream, config):
@@ -305,8 +351,7 @@ def get_cover(media_id, type, config):
         content_provider = r.get('content_provider')
 
         content_provider = utils.check_characters(content_provider)
-        metadata = ['-metadata', 'date="{}"'.format(movie_release_year),
-                    '-metadata', 'publisher="{}"'.format(content_provider)]
+        metadata = ['-metadata', 'date="{}"'.format(movie_release_year), '-metadata', 'publisher="{}"'.format(content_provider)]
     else:
         cover = None
         metadata = None
