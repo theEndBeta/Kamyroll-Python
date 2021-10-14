@@ -1,7 +1,7 @@
 import os
 import sys
 import requests
-from . import utils
+import utils
 
 
 class Subtitles:
