@@ -22,7 +22,7 @@
     "preferences": {
         "download": {
             "video": true,
-            "subtitles": false,
+            "subtitles": true,
             "path": "Downloads"
         },
         "subtitles": {
@@ -37,7 +37,7 @@
         },
         "video": {
             "hardsub": true,
-            "resolution": 240,
+            "resolution": 1080,
             "extension": "mp4",
             "attached_picture": true,
             "metadata": true
