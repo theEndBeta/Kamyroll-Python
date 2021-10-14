@@ -1,9 +1,9 @@
 import os
 import sys
 import requests
-from . import converter
-from . import extractor
-from . import utils
+import converter
+import extractor
+import utils
 
 
 def image(output, url):
@@ -39,11 +39,13 @@ class crunchyroll:
     def url(self, stream_id):
         r = self.__get_request(stream_id)
         (video_url, subtitles_url, audio_language) = extractor.download_url(r, self.config)
-        print("video:", video_url)
-        if subtitles_url:
-            print("subtitles:", subtitles_url)
-        if audio_language:
-            print("audio language:", audio_language)
+        if not video_url is None:
+            utils.print_msg('[debug] Video:', 0)
+            utils.print_msg(video_url, 4)
+        if not subtitles_url is None:
+            utils.print_msg('[debug] Subtitles:', 0)
+            utils.print_msg(subtitles_url, 4)
+        sys.exit(0)
 
     def download(self, stream_id):
         r = self.__get_request(stream_id)
@@ -169,4 +171,33 @@ class crunchyroll:
                 utils.print_msg('ERROR: Video extension is not supported.', 1)
                 sys.exit(0)
 
-        sys.exit(0)
+        # sys.exit(0)
+
+    def download_season(self, season_id, playlist_episode):
+        (policy, signature, key_pair_id) = utils.get_token(self.config)
+        self.config = utils.get_config()
+
+        params = {
+            'season_id': season_id,
+            'Policy': policy,
+            'Signature': signature,
+            'Key-Pair-Id': key_pair_id,
+            'locale': utils.get_locale(self.config)
+        }
+
+        endpoint = 'https://beta-api.crunchyroll.com/cms/v2{}/episodes'.format(self.config.get('configuration').get('token').get('bucket'))
+        r = requests.get(endpoint, params=params).json()
+        if utils.get_error(r):
+            sys.exit(0)
+
+        playlist_id = extractor.playlist(r, self.config, playlist_episode)
+
+        if playlist_id == []:
+            utils.print_msg('ERROR: The playlist is empty.', 1)
+            sys.exit(0)
+        else:
+            for i in range(len(playlist_id)):
+                utils.print_msg('[debug] Download playlist: {}/{}'.format(i + 1, len(playlist_id)), 0)
+                self.download(playlist_id[i])
+            utils.print_msg('[debug] The playlist has been downloaded', 0)
+            sys.exit(0)
