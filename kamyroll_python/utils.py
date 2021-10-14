@@ -232,7 +232,7 @@ def get_session(config):
                 "https": "https://user-uuid-{}:{}@{}:{}".format(uuid, agent_key, host, port)
             }
         elif proxy_type == "socks4" or proxy_type == "socks5":
-            if uuid: # and agent_type: # agent type is not defined?
+            if uuid and agent_key:
                 proxies = {
                     "http": "{}://{}:{}@{}:{}".format(proxy_type, uuid, agent_key, host, port),
                     "https": "{}://{}:{}@{}:{}".format(proxy_type, uuid, agent_key, host, port),
