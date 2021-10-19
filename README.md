@@ -163,6 +163,15 @@ or
 kamyroll -d "SEASON_ID" -p "[START:END]"
 ```
 
+### Get the video stream link (m3u8)
+```
+kamyroll --url "EPISODE_ID or MOVIE_ID"
+```
+or
+```
+kamyroll -u "EPISODE_ID or MOVIE_ID"
+```
+
 ---
 *This script was created by the [__Nashi Team__](https://sites.google.com/view/kamyroll/home).  
 Find us on [discord](https://discord.com/invite/g6JzYbh) for more information on projects in development.*
