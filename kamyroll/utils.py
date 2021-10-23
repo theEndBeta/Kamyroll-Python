@@ -4,32 +4,33 @@ from datetime import datetime
 import os
 import json
 import sys
-from cryptography.fernet import Fernet
-from termcolor import colored
+import logging
 import requests
 from pathlib import Path
+from typing import Sequence, Tuple
+from requests.structures import CaseInsensitiveDict
 
 src_path = Path(__file__).parent.absolute()
+log = logging.getLogger(__name__)
 
 
-def get_config():
-    if os.path.exists('kamyroll.json'):
-        file = open('kamyroll.json', 'r')
-        config = json.load(file)
-        file.close()
+def get_config(config_file: str = os.path.join(os.getcwd(), 'config', 'kamyroll.python')):
+    if os.path.exists(config_file):
+        with open(config_file, 'r') as file:
+            config = json.load(file)
         return config
     else:
-        print_msg('ERROR: Configuration file not found.', 1)
+        log.error('Configuration file not found: ', config_file)
         sys.exit(0)
 
 
-def get_login_form(args_login):
+def get_login_form(args_login: str) -> Tuple[str, str]:
     try:
         username = args_login.split(':')[0].strip()
         password = args_login.split(':')[1].strip()
         return username, password
     except Exception as e:
-        print_msg('ERROR: Invalid login form.', 1)
+        log.error('Invalid login form:', e)
         sys.exit(0)
 
 
@@ -39,45 +40,8 @@ def decrypt_base64(data):
     return base64_bytes.decode('ascii')
 
 
-def get_bypass():
-    base64_data = 'only_windows_version'
-    encrypted_data = decrypt_base64(base64_data)
-    json_encryption = json.loads(encrypted_data)
-    encryption_key = decrypt_base64(json_encryption.get('key'))
-    fernet = Fernet(encryption_key.encode('ascii'))
-    encryption_token = json_encryption.get('token')
-    bypass_id = fernet.decrypt(encryption_token.encode('ascii')).decode()
-    username = bypass_id.split(':')[0].strip()
-    password = bypass_id.split(':')[1].strip()
-    return username, password
-
-
-def print_msg(msg, tp):
-    if tp == 0 or tp is None:
-        msg = colored(msg)
-    elif tp == 1:
-        msg = colored(msg, 'red')
-    elif tp == 2:
-        msg = colored(msg, 'yellow')
-    elif tp == 3:
-        msg = colored(msg, 'green')
-    elif tp == 4:
-        msg = colored(msg, 'cyan')
-    elif tp == 5:
-        msg = colored(msg, 'magenta')
-    print(msg)
-
-
-def get_playlist_episode(episodes, episode_count):
-    playlist_episode = list()
-
-    try:
-        number = int(episodes)
-        playlist_episode.append(str(number))
-        return playlist_episode
-    except Exception as e:
-        # print(e)
-        pass
+def get_playlist_episode(episodes: str, episode_count: int) -> Sequence[int]:
+    playlist_episode = []
 
     if '[' in episodes and ']' in episodes:
         if episodes.startswith('[-'):
@@ -104,19 +68,17 @@ def get_playlist_episode(episodes, episode_count):
                 playlist_episode = get_numbers(start, end)
                 return playlist_episode
             else:
-                print_msg('ERROR: Invalid interval', 1)
+                log.error('Invalid interval')
                 sys.exit(0)
     else:
-        print_msg('ERROR: Invalid playlist format.', 1)
+        log.error('Invalid playlist format.')
         sys.exit(0)
 
 
-def get_numbers(start, end):
-    numbers = list()
-    while start <= end:
-        numbers.append(str(start))
-        start += 1
-    return numbers
+def get_numbers(start: int, end: int) -> Sequence[int]:
+    if start > end:
+        log.error('Ending episode number must be greater than starting', start, end)
+    return range(start, end + 1)
 
 
 def get_episode_count(list_episode):
@@ -141,7 +103,7 @@ def get_authorization(config, refresh):
 
         session.headers.update(get_authorization(config, False))
         r = session.post('https://beta-api.crunchyroll.com/auth/v1/token', data=data).json()
-        if get_error(r):
+        if check_error(r):
             sys.exit(0)
 
         access_token = r.get('access_token')
@@ -157,7 +119,7 @@ def get_authorization(config, refresh):
     return {'Authorization': '{} {}'.format(token_type, access_token)}
 
 
-def get_error(json_request):
+def check_error(json_request: dict) -> bool:
     if 'error' in json_request:
         error_code = json_request.get('error')
 
@@ -165,18 +127,20 @@ def get_error(json_request):
         if error_code == 'invalid_grant':
             msg = 'ERROR: Invalid login information.'
 
-        print_msg(msg, 1)
+        log.error(msg)
         return True
     elif 'message' in json_request and 'code' in json_request:
-        print_msg('ERROR: {}.'.format(json_request.get('message')), 1)
+        log.error(json_request.get('message'))
         return True
     else:
         return False
 
 
-def get_headers(config):
-    return {'User-Agent': config.get('configuration').get('user_agent'),
-            'Content-Type': 'application/x-www-form-urlencoded'}
+def get_headers(config) -> CaseInsensitiveDict[str]:
+    return CaseInsensitiveDict({
+        'User-Agent': config.get('configuration').get('user_agent'),
+        'Content-Type': 'application/x-www-form-urlencoded',
+    })
 
 
 def save_config(config):
@@ -239,7 +203,7 @@ def get_token(config):
         session.headers = headers
 
         r = session.get('https://beta-api.crunchyroll.com/index/v2').json()
-        if get_error(r):
+        if check_error(r):
             sys.exit(0)
 
         cms = r.get('cms')
@@ -260,7 +224,7 @@ def get_token(config):
         return policy, signature, key_pair_id
 
 
-def boolean_to_str(boolean):
+def boolean_to_str(boolean: bool) -> str:
     if boolean:
         return 'True'
     else:
@@ -294,7 +258,7 @@ def get_session(config):
                     'https': '{}://{}:{}'.format(proxy_type, host, port),
                 }
         else:
-            print_msg('ERROR: Unknown proxy type {}'.format(proxy_type), 1)
+            log.error('Unknown proxy type {}'.format(proxy_type))
             sys.exit(0)
         session.proxies.update(proxies)
 
@@ -329,7 +293,7 @@ def get_download_type(json_download):
     return type, id
 
 
-def get_language_available(json_language):
+def get_language_available(json_language) -> list[str]:
     language_available = list()
     items = ['', 'en-US', 'en-GB', 'es-419', 'es-ES', 'pt-BR', 'pt-PT', 'fr-FR', 'de-DE', 'ar-SA', 'it-IT', 'ru-RU']
     for item in items:
@@ -374,14 +338,8 @@ def get_language_title(code):
     return language
 
 
-def get_duration(duration_ms):
-    hours = duration_ms / 3.6e6
-    minutes = duration_ms / 60000
-    seconds = duration_ms / 1000
-    while hours > 24:
-        hours -= 24
-    while minutes > 60:
-        minutes -= 60
-    while seconds > 60:
-        seconds -= 60
+def get_duration(duration_ms: int) -> str:
+    hours = int((duration_ms / 3.6e6) % 24)
+    minutes = int( (duration_ms / 60000) % 60)
+    seconds = int((duration_ms / 1000) % 60)
     return '{} h {} min {} sec'.format(math.floor(hours), math.floor(minutes), math.floor(seconds))

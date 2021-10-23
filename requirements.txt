@@ -1,4 +1,1 @@
 requests
-coloroma
-termcolor
-cryptography

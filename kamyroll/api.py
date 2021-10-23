@@ -1,8 +1,10 @@
+import logging
 import sys
 import requests
-import extractor
-import utils
+import kamyroll.extractor as extractor
+import kamyroll.utils as utils
 
+log = logging.getLogger(__name__)
 
 class crunchyroll:
 
@@ -23,10 +25,10 @@ class crunchyroll:
         r = session.post('https://beta-api.crunchyroll.com/auth/v1/token', data=data).json()
         if bypass:
             if 'error' in r or 'message' in r:
-                utils.print_msg('ERROR: Premium bypass is unavailable.', 1)
+                log.error('Premium bypass is unavailable.', 1)
                 sys.exit(0)
         else:
-            if utils.get_error(r):
+            if utils.check_error(r):
                 sys.exit(0)
 
         access_token = r.get('access_token')
@@ -49,13 +51,13 @@ class crunchyroll:
             username = None
         else:
             r = session.get('https://beta-api.crunchyroll.com/accounts/v1/me').json()
-            if utils.get_error(r):
+            if utils.check_error(r):
                 sys.exit(0)
 
             external_id = r.get('external_id')
 
             r = session.get('https://beta-api.crunchyroll.com/accounts/v1/me/profile').json()
-            if utils.get_error(r):
+            if utils.check_error(r):
                 sys.exit(0)
 
             email = r.get('email')
@@ -64,10 +66,10 @@ class crunchyroll:
         r = session.get('https://beta-api.crunchyroll.com/index/v2').json()
         if bypass:
             if 'error' in r or 'message' in r:
-                utils.print_msg('ERROR: An error occurred during initialization.', 1)
+                log.error('An error occurred during initialization.', 1)
                 sys.exit(0)
         else:
-            if utils.get_error(r):
+            if utils.check_error(r):
                 sys.exit(0)
 
         cms = r.get('cms')
@@ -94,14 +96,7 @@ class crunchyroll:
         json_account['username'] = username
         self.config.get('configuration')['account'] = json_account
 
-        if bypass:
-            if utils.get_premium(self.config):
-                utils.print_msg('[debug] Premium bypass enabled'.format(email), 0)
-            else:
-                utils.print_msg('ERROR: Premium is unavailable.', 1)
-                sys.exit(0)
-        else:
-            utils.print_msg('[debug] Connected account: [{}]'.format(email), 0)
+        log.info('Connected account: [{}]'.format(email), 0)
 
         utils.save_config(self.config)
         sys.exit(0)
@@ -122,7 +117,7 @@ class crunchyroll:
         }
 
         r = session.get('https://beta-api.crunchyroll.com/content/v1/search', params=params).json()
-        if utils.get_error(r):
+        if utils.check_error(r):
             sys.exit(0)
 
         items = r.get('items')
@@ -145,7 +140,7 @@ class crunchyroll:
         endpoint = 'https://beta-api.crunchyroll.com/cms/v2{}/seasons'.format(self.config.get('configuration').get('token').get('bucket'))
         r = requests.get(endpoint, params=params).json()
 
-        if utils.get_error(r):
+        if utils.check_error(r):
             sys.exit(0)
 
         extractor.season(r, series_id)
@@ -165,7 +160,7 @@ class crunchyroll:
 
         endpoint = 'https://beta-api.crunchyroll.com/cms/v2{}/episodes'.format(self.config.get('configuration').get('token').get('bucket'))
         r = requests.get(endpoint, params=params).json()
-        if utils.get_error(r):
+        if utils.check_error(r):
             sys.exit(0)
 
         extractor.episode(r, season_id, self.config)
@@ -186,7 +181,7 @@ class crunchyroll:
         endpoint = 'https://beta-api.crunchyroll.com/cms/v2{}/movies'.format(self.config.get('configuration').get('token').get('bucket'))
         r = requests.get(endpoint, params=params).json()
 
-        if utils.get_error(r):
+        if utils.check_error(r):
             sys.exit(0)
 
         extractor.movie(r, movie_id, self.config)

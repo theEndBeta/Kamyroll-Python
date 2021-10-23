@@ -5,19 +5,13 @@ verify_ssl = true
 
 [dev-packages]
 mypy = "*"
-jedi = "*"
 flake8 = "*"
 flake8-black = "*"
 black = "*"
 
 [packages]
-kamyroll_python = {editable = true,path = "."}
+kamyroll = {editable = true,path = "."}
 requests = "*"
-colorama = "*"
-termcolor = "*"
-pyxdg = "*"
-pysocks = "*"
-cryptography = "*"
 
 [requires]
 python_version = "3.9"

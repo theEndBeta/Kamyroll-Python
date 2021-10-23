@@ -1,7 +1,10 @@
+import logging
 import os
 import sys
 import requests
-import utils
+import kamyroll.utils as utils
+
+log = logging.getLogger(__name__)
 
 
 class Subtitles:
@@ -30,10 +33,10 @@ class Subtitles:
             try:
                 os.system(' '.join(command))
             except KeyboardInterrupt:
-                utils.print_msg('KeyboardInterrupt', 1)
+                log.error('KeyboardInterrupt')
                 sys.exit(0)
             except Exception as e:
-                utils.print_msg(e, 1)
+                log.error(e)
                 sys.exit(0)
         else:
-            utils.print_msg('WARRING: Source subtitle file is unavailable.', 2)
+            log.warning('Source subtitle file is unavailable.')

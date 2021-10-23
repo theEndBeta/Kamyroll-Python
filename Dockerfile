@@ -1,6 +1,6 @@
 FROM python:3
 
-RUN mkdir /app && chmod 755 /app
+RUN mkdir -p /app && chmod 755 /app
 
 WORKDIR /app
 
@@ -11,6 +11,6 @@ COPY . /app
 
 RUN pip install .
 
-RUN cp kamyroll_python/kamyroll.json /app/
+RUN cp kamyroll.json.tmpl /app/config/kamyroll.json
 
 ENTRYPOINT ["kamyroll"]
