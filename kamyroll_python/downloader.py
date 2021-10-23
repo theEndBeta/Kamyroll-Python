@@ -1,9 +1,11 @@
 import os
 import sys
 import requests
-import converter
-import extractor
-import utils
+import kamyroll_python.converter as converter
+import kamyroll_python.extractor as extractor
+import kamyroll_python.utils as utils
+import subprocess
+from pprint import pprint
 
 
 def image(output, url):
@@ -96,12 +98,7 @@ class crunchyroll:
                     '-hide_banner',
                     '-v', 'warning',
                     '-stats',
-                    '-reconnect', '1',
-                    '-reconnect_streamed', '1',
-                    '-reconnect_on_network_error', '1',
-                    '-max_reload', '2147483647',
-                    '-m3u8_hold_counters', '2147483647',
-                    '-i', '"{}"'.format(video_url)
+                    '-i', '{}'.format(video_url)
                 ]
                 if extension == 'mkv':
                     if self.config.get('preferences').get('download').get('subtitles'):
@@ -109,20 +106,20 @@ class crunchyroll:
                         subtitles = self.config.get('preferences').get('subtitles')
 
                         if subtitles.get('ass') and os.path.exists('{}.ass'.format(subtitles_path)):
-                            command += ['-i', '"{}.ass"'.format(subtitles_path)]
+                            command += ['-i', '{}.ass'.format(subtitles_path)]
                             index += 1
                             subs.append(index)
                         if subtitles.get('vtt') and os.path.exists('{}.vtt'.format(subtitles_path)):
-                            command += ['-i', '"{}.vtt"'.format(subtitles_path)]
+                            command += ['-i', '{}.vtt'.format(subtitles_path)]
                             index += 1
                             subs.append(index)
                         if subtitles.get('srt') and os.path.exists('{}.srt'.format(subtitles_path)):
-                            command += ['-i', '"{}.srt"'.format(subtitles_path)]
+                            command += ['-i', '{}.srt'.format(subtitles_path)]
                             index += 1
                             subs.append(index)
 
                 if self.config.get('preferences').get('video').get('attached_picture') and extension == 'mp4':
-                    command += ['-i', '"{}"'.format(os.path.join(path, 'cover.jpg'))]
+                    command += ['-i', '{}'.format(os.path.join(path, 'cover.jpg'))]
                     index += 1
 
                 command += ['-map', '0:v', '-map', '0:a']
@@ -142,12 +139,12 @@ class crunchyroll:
                     if extension == 'mp4':
                         command += ['-c:v:{}'.format(index), 'mjpeg', '-disposition:v:{}'.format(index), 'attached_pic']
                     elif extension == 'mkv':
-                        command += ['-attach', '"{}"'.format(os.path.join(path, 'cover.jpg')), '-metadata:s:t', 'mimetype="image/jpeg"']
+                        command += ['-attach', '{}'.format(os.path.join(path, 'cover.jpg')), '-metadata:s:t', 'mimetype="image/jpeg"']
 
                 if self.config.get('preferences').get('video').get('metadata'):
                     command += metadata
 
-                command += ['"{}"'.format(os.path.join(path, '{}.{}'.format(output, extension))), '-y']
+                command += ['{}'.format(os.path.join(path, '{}.{}'.format(output, extension))), '-y']
 
                 if os.path.exists(os.path.join(path, '{}.{}'.format(output, extension))):
                     utils.print_msg('WARRING: Video already exists.', 2)
@@ -155,7 +152,9 @@ class crunchyroll:
                     utils.print_msg('[debug] Download resolution: [{}]'.format(
                         self.config.get('preferences').get('video').get('resolution')), 0)
                     try:
-                        os.system(' '.join(command))
+                        pprint(command)
+                        subprocess.call(command)
+                        # os.system(' '.join(command))
                         utils.print_msg('[debug] Downloaded video', 0)
                     except KeyboardInterrupt:
                         utils.print_msg('KeyboardInterrupt', 1)
