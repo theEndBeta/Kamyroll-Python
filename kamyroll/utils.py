@@ -9,19 +9,11 @@ import requests
 from pathlib import Path
 from typing import Sequence, Tuple
 from requests.structures import CaseInsensitiveDict
+from kamyroll.config import KamyrollConf
 
 src_path = Path(__file__).parent.absolute()
 log = logging.getLogger(__name__)
 
-
-def get_config(config_file: str = os.path.join(os.getcwd(), 'config', 'kamyroll.python')):
-    if os.path.exists(config_file):
-        with open(config_file, 'r') as file:
-            config = json.load(file)
-        return config
-    else:
-        log.error('Configuration file not found: ', config_file)
-        sys.exit(0)
 
 
 def get_login_form(args_login: str) -> Tuple[str, str]:
@@ -90,11 +82,11 @@ def get_episode_count(list_episode):
     return count
 
 
-def get_authorization(config, refresh):
+def get_authorization(config: KamyrollConf, refresh):
     if refresh:
         session = get_session(config)
 
-        refresh_token = config.get('configuration').get('token').get('refresh_token')
+        refresh_token = config.config('token', 'refresh_token')
         data = {
             'refresh_token': refresh_token,
             'grant_type': 'refresh_token',
@@ -109,18 +101,18 @@ def get_authorization(config, refresh):
         access_token = r.get('access_token')
         refresh_token = r.get('refresh_token')
         token_type = r.get('token_type')
-        json_token = config.get('configuration').get('token')
-        json_token['refresh_token'] = refresh_token
-        config.get('configuration')['token'] = json_token
-        save_config(config)
+        config.set_conf(refresh_token, 'token', 'refresh_token')
+        config.save()
     else:
-        token_type = config.get('configuration').get('token').get('token_type')
-        access_token = config.get('configuration').get('token').get('access_token')
+        token_type = config.config('token', 'token_type')
+        access_token = config.config('token', 'access_token')
     return {'Authorization': '{} {}'.format(token_type, access_token)}
 
 
 def check_error(json_request: dict) -> bool:
     if 'error' in json_request:
+        log.debug("JSON error: %s", json_request)
+
         error_code = json_request.get('error')
 
         msg = 'ERROR: Status code: {}'.format(error_code)
@@ -136,21 +128,15 @@ def check_error(json_request: dict) -> bool:
         return False
 
 
-def get_headers(config) -> CaseInsensitiveDict[str]:
+def get_headers(config: KamyrollConf) -> CaseInsensitiveDict[str]:
     return CaseInsensitiveDict({
-        'User-Agent': config.get('configuration').get('user_agent'),
+        'User-Agent': config.config('user_agent'),
         'Content-Type': 'application/x-www-form-urlencoded',
     })
 
 
-def save_config(config):
-    file = open('kamyroll.json', 'w', encoding='utf8')
-    file.write(json.dumps(config, indent=4, sort_keys=False, ensure_ascii=False))
-    file.close()
-
-
-def get_locale(config):
-    bucket = config.get('configuration').get('token').get('bucket')
+def get_locale(config: KamyrollConf):
+    bucket = config.config('token', 'bucket')
     country_code = bucket.split('/')[1]
     items = ['en-US', 'en-GB', 'es-419', 'es-ES', 'pt-BR', 'pt-PT', 'fr-FR', 'de-DE', 'ar-SA', 'it-IT', 'ru-RU']
     locale = items[0]
@@ -162,8 +148,8 @@ def get_locale(config):
     return locale
 
 
-def get_metadata_genre(config):
-    bucket = config.get('configuration').get('token').get('bucket')
+def get_metadata_genre(config: KamyrollConf):
+    bucket = config.config('token', 'bucket')
     country_code = bucket.split('/')[1]
     list_language = ['en-US', 'en-GB', 'es-419', 'es-ES', 'pt-BR', 'pt-PT', 'fr-FR', 'de-DE', 'ar-SA', 'it-IT', 'ru-RU']
     list_genre = ['Animation', 'Animation', 'Animación', 'Animación', 'Animação', 'Animação', 'Animation', 'Animation',
@@ -177,7 +163,7 @@ def get_metadata_genre(config):
     return genre
 
 
-def get_token(config):
+def get_token(config: KamyrollConf):
     year = datetime.now().year
     month = datetime.now().month
     day = datetime.now().day
@@ -186,16 +172,15 @@ def get_token(config):
     second = datetime.now().second
 
     current_time = datetime.strptime('{}-{}-{}T{}:{}:{}Z'.format(year, month, day, hour, minute, second),'%Y-%m-%dT%H:%M:%SZ')
-    expires_time = datetime.strptime(config.get('configuration').get('token').get('expires'), '%Y-%m-%dT%H:%M:%SZ')
+    expires_time = datetime.strptime(str(config.config('token', 'expires')), '%Y-%m-%dT%H:%M:%SZ')
 
     if current_time >= expires_time:
-        policy = config.get('configuration').get('token').get('policy')
-        signature = config.get('configuration').get('token').get('signature')
-        key_pair_id = config.get('configuration').get('token').get('key_pair_id')
+        policy = config.config('token', 'policy')
+        signature = config.config('token', 'signature')
+        key_pair_id = config.config('token', 'key_pair_id')
         return policy, signature, key_pair_id
     else:
         authorization = get_authorization(config, True)
-        config = get_config()
         headers = get_headers(config)
         headers.update(authorization)
 
@@ -213,14 +198,13 @@ def get_token(config):
         key_pair_id = cms.get('key_pair_id')
         expires = cms.get('expires')
 
-        json_token = config.get('configuration').get('token')
-        json_token['bucket'] = bucket
-        json_token['policy'] = policy
-        json_token['signature'] = signature
-        json_token['key_pair_id'] = key_pair_id
-        json_token['expires'] = expires
-        config.get('configuration')['token'] = json_token
-        save_config(config)
+        json_token = config.config('token')
+        config.set_conf(bucket, 'token', 'bucket')
+        config.set_conf(policy, 'token', 'policy')
+        config.set_conf(signature, 'token', 'signature')
+        config.set_conf(key_pair_id, 'token', 'key_pair_id')
+        config.set_conf(expires, 'token', 'expires')
+        config.save()
         return policy, signature, key_pair_id
 
 
@@ -231,15 +215,14 @@ def boolean_to_str(boolean: bool) -> str:
         return 'False'
 
 
-def get_session(config):
+def get_session(config: KamyrollConf):
     session = requests.session()
-    proxy_config = config.get('preferences').get('proxy')
-    if proxy_config.get('is_proxy'):
-        uuid = proxy_config.get('uuid')
-        agent_key = proxy_config.get('agent_key')
-        host = proxy_config.get('host')
-        port = proxy_config.get('port')
-        proxy_type = proxy_config.get('type')
+    if config.preference('proxy', 'is_proxy'):
+        uuid = config.preference('proxy', 'uuid')
+        agent_key = config.preference('proxy', 'agent_key')
+        host = config.preference('proxy', 'host')
+        port = config.preference('proxy', 'port')
+        proxy_type = config.preference('proxy', 'type')
 
         if not proxy_type or proxy_type == 'https' or proxy_type == 'http':
             proxies = {
@@ -265,8 +248,8 @@ def get_session(config):
     return session
 
 
-def get_premium(config):
-    if 'crunchyroll' in config.get('configuration').get('token').get('bucket'):
+def has_premium(config: KamyrollConf):
+    if 'crunchyroll' in config.config('token', 'bucket'):
         return True
     else:
         return False

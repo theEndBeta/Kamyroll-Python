@@ -1,5 +1,7 @@
 FROM python:3
 
+RUN pip install --upgrade pip
+
 RUN mkdir -p /app && chmod 755 /app
 
 WORKDIR /app

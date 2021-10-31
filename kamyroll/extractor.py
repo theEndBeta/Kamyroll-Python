@@ -3,8 +3,9 @@ import os
 import sys
 from datetime import datetime
 import requests
-from typing import Tuple, Optional, NamedTuple
+from typing import Tuple, NamedTuple
 import kamyroll.utils as utils
+from kamyroll.config import KamyrollConf
 
 log = logging.getLogger(__name__)
 
@@ -16,10 +17,10 @@ class Metadata(NamedTuple):
     path: str = ""
 
 
-def search(json_search, config):
+def search(json_search, config: KamyrollConf):
     result_type = json_search.get('type')
     items = json_search.get('items')
-    premium = utils.get_premium(config)
+    premium = utils.has_premium(config)
 
     list_type = list()
     list_id = list()
@@ -56,7 +57,7 @@ def search(json_search, config):
             list_episode.append('None')
             list_season.append('None')
 
-    log.info('Result for: ', result_type)
+    log.info('Result for: %s', result_type)
     if len(list_id) == 0:
         log.warn('No media found for this category.')
     else:
@@ -76,7 +77,7 @@ def season(json_season, series_id):
         list_title.append(item.get('title'))
         list_season.append(item.get('season_number'))
 
-    log.info('Season for: ', series_id)
+    log.info('Season for: %s', series_id)
     if len(list_id) == 0:
         log.warn('No season found for this series.')
     else:
@@ -85,9 +86,9 @@ def season(json_season, series_id):
             log.info('{0:<15} {1:<10} {2:<40}'.format(list_id[i], list_season[i], list_title[i]))
 
 
-def movie(json_movie, movie_id, config):
+def movie(json_movie, movie_id, config: KamyrollConf):
     items = json_movie.get('items')
-    premium = utils.get_premium(config)
+    premium = utils.has_premium(config)
 
     list_id = list()
     list_title = list()
@@ -108,7 +109,7 @@ def movie(json_movie, movie_id, config):
         list_duration_ms.append(item.get('duration_ms'))
         list_premium_only.append(premium_only)
 
-    log.info('Movie for: ', movie_id)
+    log.info('Movie for: %s', movie_id)
     if len(list_id) == 0:
         log.warn('No movie found for this id.')
     else:
@@ -118,9 +119,9 @@ def movie(json_movie, movie_id, config):
                 '{0:<15} {1:<15} {2:<20} {3:<40}'.format(list_id[i], utils.boolean_to_str(list_premium_only[i]), utils.get_duration(list_duration_ms[i]), list_title[i]))
 
 
-def episode(json_episode, season_id, config):
+def episode(json_episode, season_id, config: KamyrollConf):
     items = json_episode.get('items')
-    premium = utils.get_premium(config)
+    premium = utils.has_premium(config)
 
     list_id = list()
     list_title = list()
@@ -143,7 +144,7 @@ def episode(json_episode, season_id, config):
         list_season.append(item.get('season_number'))
         list_premium_only.append(premium_only)
 
-    log.info('Episode for: {}'.format(season_id))
+    log.info('Episode for: %s', season_id)
     if len(list_id) == 0:
         log.warn('No episode found for this season.')
     else:
@@ -157,7 +158,7 @@ def episode(json_episode, season_id, config):
 def playlist(json_episode, config, playlist_episode):
     playlist_id = list()
     items = json_episode.get('items')
-    premium = utils.get_premium(config)
+    is_premium = utils.has_premium(config)
 
     list_id = list()
     list_title = list()
@@ -167,7 +168,7 @@ def playlist(json_episode, config, playlist_episode):
     for item in items:
         premium_only = item.get('is_premium_only')
         if premium_only:
-            if premium:
+            if is_premium:
                 id = utils.get_stream_id(item)
             else:
                 id = 'None'
@@ -189,8 +190,8 @@ def playlist(json_episode, config, playlist_episode):
             if playlist_episode[i] in list_episode:
                 for e in range(len(list_episode)):
                     if list_episode[e] == playlist_episode[i]:
-                        if list_premium_only[e] and premium == False:
-                            log.warn('Prmeium only: S{}.Ep{} - {}'.format(list_season[e], list_episode[e], list_title[e]))
+                        if list_premium_only[e] and is_premium == False:
+                            log.warn('Premium only: S{i:02}.Ep{i:02} - {}'.format(list_season[e], list_episode[e], list_title[e]))
                         else:
                             log.info('Added to playlist: S{}.Ep{} - {}'.format(list_season[e], list_episode[e], list_title[e]))
                             playlist_id.append(list_id[e])
@@ -200,43 +201,42 @@ def playlist(json_episode, config, playlist_episode):
     return playlist_id
 
 
-def download_url(json_stream, config):
-    video_url = None
-    subtitles_url = None
-    subtitles_language = config.get('preferences').get('subtitles').get('language')
-    video_hardsub = config.get('preferences').get('video').get('hardsub')
+def download_url(json_stream, config: KamyrollConf) -> Tuple[str, str, str]:
+    video_url = ""
+    subtitles_url = ""
+    subtitles_language = config.preference('subtitles', 'language')
+    video_hardsub = config.preference('video', 'hardsub')
 
-    json_video = json_stream.get('streams').get('adaptive_hls')
-    json_subtitles = json_stream.get('subtitles')
-    audio_language = json_stream.get('audio_locale')
+    json_video = json_stream.get('streams').get('adaptive_hls', "")
+    json_subtitles = json_stream.get('subtitles', "")
+    audio_language = json_stream.get('audio_locale', "")
 
     log.info('Audio language: [{}]'.format(audio_language))
     log.info('Available subtitle language: {}'.format(utils.get_language_available(json_video)))
 
     if video_hardsub:
         if subtitles_language in json_video:
-            video_url = json_video.get(subtitles_language).get('url')
-        else:
-            if config.get('preferences').get('download').get('video'):
-                log.warn('The language of the settings subtitles is not available for the hardsub.')
+            video_url = json_video.get(subtitles_language).get('url', "")
+        elif config.preference('download', 'video'):
+            log.warn('The language of the settings subtitles is not available for the hardsub.')
     else:
-        video_url = json_video.get('').get('url')
+        video_url = json_video.get('', {}).get('url', "")
 
     if subtitles_language in json_subtitles:
         subtitles_url = json_subtitles.get(subtitles_language).get('url')
-    else:
-        if config.get('preferences').get('download').get('subtitles'):
-            log.warn('The language of the settings subtitles is not available.')
+    elif config.preference('download', 'subtitles'):
+        log.warn('The language of the settings subtitles is not available.')
 
-    if not video_url is None:
+    if video_url == "":
         video_url = get_m3u8_url(video_url, config)
 
+    log.debug("Video URL: %s", video_url)
     return video_url, subtitles_url, audio_language
 
 
-def get_m3u8_url(video_url, config):
-    resolution = str(config.get('preferences').get('video').get('resolution'))
-    m3u8_url = None
+def get_m3u8_url(video_url: str, config: KamyrollConf) -> str:
+    resolution = str(config.preference('video', 'resolution'))
+    m3u8_url = ""
     resolution_available = list()
     r = requests.get(video_url).text
     items = r.split('#EXT-X-STREAM')
@@ -252,10 +252,8 @@ def get_m3u8_url(video_url, config):
     return m3u8_url
 
 
-def get_metadata(type, id, config) -> Metadata:
+def get_metadata(type, id, config: KamyrollConf) -> Metadata:
     (policy, signature, key_pair_id) = utils.get_token(config)
-    config = utils.get_config()
-
 
     params = {
         'Policy': policy,
@@ -264,7 +262,7 @@ def get_metadata(type, id, config) -> Metadata:
         'locale': utils.get_locale(config)
     }
 
-    endpoint = 'https://beta-api.crunchyroll.com/cms/v2{}/{}/{}'.format(config.get('configuration').get('token').get('bucket'), type, id)
+    endpoint = 'https://beta-api.crunchyroll.com/cms/v2{}/{}/{}'.format(config.config('token', 'bucket'), type, id)
     r = requests.get(endpoint, params=params).json()
     if utils.check_error(r):
         sys.exit(0)
@@ -289,7 +287,7 @@ def get_metadata(type, id, config) -> Metadata:
         (cover, metadata) = get_cover(series_id, 'series', config)
         thumbnail = r.get('images').get('thumbnail')[0][-1].get('source')
 
-        path = config.get('preferences').get('download').get('path')
+        path = str(config.preference('download', 'path'))
         if path is None:
             path = os.path.join(series_title, 'Season {}'.format(season_number))
         else:
@@ -315,7 +313,7 @@ def get_metadata(type, id, config) -> Metadata:
         title = utils.check_characters(title)
         description = utils.check_characters(description)
 
-        path = config.get('preferences').get('download').get('path')
+        path = str(config.preference('download', 'path'))
         if path is None:
             path = os.path.join(title)
         else:
@@ -343,9 +341,8 @@ def get_metadata(type, id, config) -> Metadata:
     )
 
 
-def get_cover(media_id, type, config) -> Tuple[str, list[str]]:
+def get_cover(media_id, type, config: KamyrollConf) -> Tuple[str, list[str]]:
     (policy, signature, key_pair_id) = utils.get_token(config)
-    config = utils.get_config()
 
     params = {
         'Policy': policy,
@@ -354,7 +351,7 @@ def get_cover(media_id, type, config) -> Tuple[str, list[str]]:
         'locale': utils.get_locale(config)
     }
 
-    endpoint = 'https://beta-api.crunchyroll.com/cms/v2{}/{}/{}'.format(config.get('configuration').get('token').get('bucket'), type, media_id)
+    endpoint = 'https://beta-api.crunchyroll.com/cms/v2{}/{}/{}'.format(config.config('token', 'bucket'), type, media_id)
     r = requests.get(endpoint, params=params).json()
     if utils.check_error(r):
         sys.exit(0)
