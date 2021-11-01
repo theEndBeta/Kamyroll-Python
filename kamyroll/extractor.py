@@ -3,7 +3,7 @@ import os
 import sys
 from datetime import datetime
 import requests
-from typing import Tuple, NamedTuple
+from typing import Tuple, NamedTuple, Sequence
 import kamyroll.utils as utils
 from kamyroll.config import KamyrollConf
 
@@ -57,17 +57,19 @@ def search(json_search, config: KamyrollConf):
             list_episode.append('None')
             list_season.append('None')
 
-    log.info('Result for: %s', result_type)
+    print('Result for: %s', result_type)
     if len(list_id) == 0:
         log.warn('No media found for this category.')
     else:
-        log.info('{0:<15} {1:<20} {2:<10} {3:<10} {4:<40}'.format('ID', 'Type', 'Season', 'Episode', 'Title'))
+        print('{0:<15} {1:<20} {2:<10} {3:<10} {4:<40}'.format('ID', 'Type', 'Season', 'Episode', 'Title'))
         for i in range(len(list_id)):
-            log.info('{0:<15} {1:<20} {2:<10} {3:<10} {4:<40}'.format(list_id[i], list_type[i], list_season[i], list_episode[i], list_title[i]))
+            print('{0:<15} {1:<20} {2:<10} {3:<10} {4:<40}'.format(list_id[i], list_type[i], list_season[i], list_episode[i], list_title[i]))
 
 
 def season(json_season, series_id):
     items = json_season.get('items')
+
+    log.debug("SeasonsData: %s", items)
 
     list_id = list()
     list_title = list()
@@ -77,13 +79,13 @@ def season(json_season, series_id):
         list_title.append(item.get('title'))
         list_season.append(item.get('season_number'))
 
-    log.info('Season for: %s', series_id)
+    print('Season for: %s', series_id)
     if len(list_id) == 0:
         log.warn('No season found for this series.')
     else:
-        log.info('{0:<15} {1:<10} {2:<40}'.format('ID', 'Season', 'Title'))
+        print('{0:<15} {1:<10} {2:<40}'.format('ID', 'Season', 'Title'))
         for i in range(len(list_id)):
-            log.info('{0:<15} {1:<10} {2:<40}'.format(list_id[i], list_season[i], list_title[i]))
+            print('{0:<15} {1:<10} {2:<40}'.format(list_id[i], list_season[i], list_title[i]))
 
 
 def movie(json_movie, movie_id, config: KamyrollConf):
@@ -109,19 +111,21 @@ def movie(json_movie, movie_id, config: KamyrollConf):
         list_duration_ms.append(item.get('duration_ms'))
         list_premium_only.append(premium_only)
 
-    log.info('Movie for: %s', movie_id)
+    print('Movie for: %s', movie_id)
     if len(list_id) == 0:
         log.warn('No movie found for this id.')
     else:
-        log.info('{0:<15} {1:<15} {2:<20} {3:<40}'.format('ID', 'Premium only', 'Duration', 'Title'))
+        print('{0:<15} {1:<15} {2:<20} {3:<40}'.format('ID', 'Premium only', 'Duration', 'Title'))
         for i in range(len(list_id)):
-            log.info(
+            print(
                 '{0:<15} {1:<15} {2:<20} {3:<40}'.format(list_id[i], utils.boolean_to_str(list_premium_only[i]), utils.get_duration(list_duration_ms[i]), list_title[i]))
 
 
 def episode(json_episode, season_id, config: KamyrollConf):
     items = json_episode.get('items')
     premium = utils.has_premium(config)
+
+    log.debug("EpisodesData: %s", items)
 
     list_id = list()
     list_title = list()
@@ -144,61 +148,61 @@ def episode(json_episode, season_id, config: KamyrollConf):
         list_season.append(item.get('season_number'))
         list_premium_only.append(premium_only)
 
-    log.info('Episode for: %s', season_id)
+    print('Episode for: %s', season_id)
     if len(list_id) == 0:
         log.warn('No episode found for this season.')
     else:
-        log.info(
-            '{0:<15} {1:<10} {2:<10} {3:<15} {4:<40}'.format('ID', 'Season', 'Episode', 'Premium only', 'Title'))
+        print(
+            '{0:<15} {1:<10} {2:<10} {3:<15} {4:<40}'.format('Stream ID', 'Season', 'Episode', 'Premium only', 'Title'))
         for i in range(len(list_id)):
-            log.info(
+            print(
                 '{0:<15} {1:<10} {2:<10} {3:<15} {4:<40}'.format(list_id[i], list_season[i], list_episode[i], utils.boolean_to_str(list_premium_only[i]), list_title[i]))
 
 
-def playlist(json_episode, config, playlist_episode):
-    playlist_id = list()
-    items = json_episode.get('items')
-    is_premium = utils.has_premium(config)
+# def playlist(json_episode, config, episode_range: Sequence[int]):
+#     playlist_id = list()
+#     items = json_episode.get('items')
+#     is_premium = utils.has_premium(config)
 
-    list_id = list()
-    list_title = list()
-    list_episode = list()
-    list_season = list()
-    list_premium_only = list()
-    for item in items:
-        premium_only = item.get('is_premium_only')
-        if premium_only:
-            if is_premium:
-                id = utils.get_stream_id(item)
-            else:
-                id = 'None'
-        else:
-            id = utils.get_stream_id(item)
+#     list_id = list()
+#     list_title = list()
+#     list_episode = list()
+#     list_season = list()
+#     list_premium_only = list()
+#     for item in items:
+#         premium_only = item.get('is_premium_only')
+#         if premium_only:
+#             if is_premium:
+#                 id = utils.get_stream_id(item)
+#             else:
+#                 id = 'None'
+#         else:
+#             id = utils.get_stream_id(item)
 
-        list_id.append(id)
-        list_title.append(item.get('title'))
-        list_episode.append(item.get('episode'))
-        list_season.append(item.get('season_number'))
-        list_premium_only.append(premium_only)
+#         list_id.append(id)
+#         list_title.append(item.get('title'))
+#         list_episode.append(item.get('episode'))
+#         list_season.append(item.get('season_number'))
+#         list_premium_only.append(premium_only)
 
-    episode_count = utils.get_episode_count(list_episode)
-    playlist_episode = utils.get_playlist_episode(playlist_episode, episode_count)
-    if len(list_id) == 0:
-        log.warn('No episode found for this season.')
-    else:
-        for i in range(len(playlist_episode)):
-            if playlist_episode[i] in list_episode:
-                for e in range(len(list_episode)):
-                    if list_episode[e] == playlist_episode[i]:
-                        if list_premium_only[e] and is_premium == False:
-                            log.warn('Premium only: S{i:02}.Ep{i:02} - {}'.format(list_season[e], list_episode[e], list_title[e]))
-                        else:
-                            log.info('Added to playlist: S{}.Ep{} - {}'.format(list_season[e], list_episode[e], list_title[e]))
-                            playlist_id.append(list_id[e])
-                        break
-            else:
-                log.warn('Not found : Ep{}'.format(playlist_episode[i]))
-    return playlist_id
+#     episode_count = utils.get_episode_count(list_episode)
+#     episode_range = utils.get_episode_list(episode_range, episode_count)
+#     if len(list_id) == 0:
+#         log.warn('No episode found for this season.')
+#     else:
+#         for i in range(len(episode_range)):
+#             if episode_range[i] in list_episode:
+#                 for e in range(len(list_episode)):
+#                     if list_episode[e] == episode_range[i]:
+#                         if list_premium_only[e] and is_premium == False:
+#                             log.warn('Premium only: S{i:02}.Ep{i:02} - {}'.format(list_season[e], list_episode[e], list_title[e]))
+#                         else:
+#                             log.info('Added to playlist: S{}.Ep{} - {}'.format(list_season[e], list_episode[e], list_title[e]))
+#                             playlist_id.append(list_id[e])
+#                         break
+#             else:
+#                 log.warn('Not found : Ep{}'.format(episode_range[i]))
+#     return playlist_id
 
 
 def download_url(json_stream, config: KamyrollConf) -> Tuple[str, str, str]:
@@ -207,9 +211,15 @@ def download_url(json_stream, config: KamyrollConf) -> Tuple[str, str, str]:
     subtitles_language = config.preference('subtitles', 'language')
     video_hardsub = config.preference('video', 'hardsub')
 
+    # log.debug("JSON Stream: %s", json_stream)
+
     json_video = json_stream.get('streams').get('adaptive_hls', "")
     json_subtitles = json_stream.get('subtitles', "")
     audio_language = json_stream.get('audio_locale', "")
+
+    log.debug("JSON Video: %s", json_video)
+    log.debug("JSON Subtitles: %s", json_subtitles)
+    log.debug("JSON audio_locale: %s", audio_language)
 
     log.info('Audio language: [{}]'.format(audio_language))
     log.info('Available subtitle language: {}'.format(utils.get_language_available(json_video)))
@@ -220,14 +230,14 @@ def download_url(json_stream, config: KamyrollConf) -> Tuple[str, str, str]:
         elif config.preference('download', 'video'):
             log.warn('The language of the settings subtitles is not available for the hardsub.')
     else:
-        video_url = json_video.get('', {}).get('url', "")
+        video_url = json_video.get('').get('url')
 
     if subtitles_language in json_subtitles:
         subtitles_url = json_subtitles.get(subtitles_language).get('url')
     elif config.preference('download', 'subtitles'):
         log.warn('The language of the settings subtitles is not available.')
 
-    if video_url == "":
+    if video_url != "":
         video_url = get_m3u8_url(video_url, config)
 
     log.debug("Video URL: %s", video_url)
@@ -240,6 +250,7 @@ def get_m3u8_url(video_url: str, config: KamyrollConf) -> str:
     resolution_available = list()
     r = requests.get(video_url).text
     items = r.split('#EXT-X-STREAM')
+    log.debug(items)
     for item in items:
         if 'RESOLUTION' in item:
             m3u8_resolution = item.split('RESOLUTION=')[1].split(',')[0].split('x')[1].strip()
@@ -267,11 +278,15 @@ def get_metadata(type, id, config: KamyrollConf) -> Metadata:
     if utils.check_error(r):
         sys.exit(0)
 
+    log.debug("MetadataJSON: %s", r)
+
     if type == 'episodes':
         series_id = r.get('series_id')
         series_title = r.get('series_title')
         season_number = r.get('season_number')
         episode = r.get('episode')
+        episode_number = r.get('episode_number')
+        sequence_number = r.get('sequence_number')
         title = r.get('title')
         description = r.get('description')
 
@@ -289,17 +304,26 @@ def get_metadata(type, id, config: KamyrollConf) -> Metadata:
 
         path = str(config.preference('download', 'path'))
         if path is None:
-            path = os.path.join(series_title, 'Season {}'.format(season_number))
+            path = os.path.join(series_title, 'Season {:02}'.format(season_number))
         else:
-            path = os.path.join(path, series_title, 'Season {}'.format(season_number))
+            path = os.path.join(path, series_title, 'Season {:02}'.format(season_number))
 
-        output = '[S{}.Ep{}] {} - {}'.format(season_number, episode, series_title, title)
+        # Handle episide 11.5, etc
+        sequence_str: str = str(sequence_number)
+        if isinstance(sequence_number, float):
+            sequence_str = "{:03.1f}".format(sequence_number)
+        else:
+            sequence_str = "{:02d}".format(sequence_number)
+
+        output = '{} S{:02}.E{} - {}'.format(series_title, season_number, sequence_str, title)
 
         metadata += ['-metadata', 'genre="{}"'.format(utils.get_metadata_genre(config)),
                      '-metadata', 'date="{}"'.format(episode_air_date),
                      '-metadata', 'show="{}"'.format(series_title),
                      '-metadata', 'season_number="{}"'.format(season_number),
-                     '-metadata', 'episode_sort="{}"'.format(episode),
+                     '-metadata', 'episode_sort="{}"'.format(sequence_number),
+                     '-metadata', 'episode="{}"'.format(episode),
+                     '-metadata', 'episode_number="{}"'.format(episode_number),
                      '-metadata', 'title="{}"'.format(title),
                      '-metadata', 'description="{}"'.format(description)]
 

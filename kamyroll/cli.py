@@ -10,15 +10,15 @@ import kamyroll.downloader as downloader
 import kamyroll.utils as utils
 from kamyroll.config import KamyrollConf
 
-logging.basicConfig(level=logging.DEBUG)
-log = logging.getLogger(__name__)
-
 
 def run():
     config_file_default: str = os.path.join(os.getcwd(), 'config', 'kamyroll.json')
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--authenticate', '-a',   action='store_true',    help='Authenticate with configured ID')
+    parser.add_argument('--verbose',      '-v',   action='count', default=0, help='Increase verbosity')
+    parser.add_argument('--quiet',        '-q',   action='count', default=0, help='Decrease verbosity')
+
     parser.add_argument('--login',    '-l',   type=str,     help='Login with ID (`<username>:<password>`)')
     parser.add_argument('--search',           type=str,     help='Search a series, films, episode')
     parser.add_argument('--season',   '-s',   type=str,     help='Show seasons of a series (by series id)')
@@ -26,7 +26,7 @@ def run():
     parser.add_argument('--movie',    '-m',   type=str,     help='Show movies from a movie list (by movie id)')
     parser.add_argument('--download', '-d',   type=str,     help='Download an episode or movie (by episode  or movie id)')
     parser.add_argument('--url',      '-u',   type=str,     help='Show m3u8 url of episode or movie (by episode id)')
-    parser.add_argument('--playlist', '-p',   type=str,     nargs="+", help='Download episode list')
+    # parser.add_argument('--playlist', '-p',   type=str,     nargs="+", help='Download episode list')
     parser.add_argument(
         '--config',
         '-c',
@@ -37,6 +37,19 @@ def run():
         help='Location of the config file',
     )
     args = parser.parse_args()
+
+    # Set dynamic loq level
+    log_levels = [logging.CRITICAL, logging.ERROR, logging.WARNING, logging.INFO, logging.DEBUG]
+    verbosity_index = 2 + (args.verbose - args.quiet)
+    if verbosity_index >= len(log_levels):
+        verbosity_index = len(log_levels) - 1
+    elif verbosity_index < 0:
+        verbosity_index = 0
+
+
+    logging.basicConfig(level=log_levels[verbosity_index])
+    log = logging.getLogger(__name__)
+
 
     cr_api = api.crunchyroll(KamyrollConf.load(args.config))
 
@@ -60,10 +73,11 @@ def run():
         cr_api.movie(args.movie)
     elif args.download:
         cr_dl = downloader.crunchyroll(cr_api.config)
-        if args.playlist:
-            cr_dl.download_season(args.download, args.playlist)
-        else:
-            cr_dl.download(args.download)
+        # if args.playlist:
+        #     if len(args.playlist)
+        #     cr_dl.download_season(args.download, args.playlist)
+        # else:
+        cr_dl.download(args.download)
     elif args.url:
         cr_dl = downloader.crunchyroll(cr_api.config)
         cr_dl.url(args.url)

@@ -49,11 +49,13 @@ class KamyrollConf:
     def save(self) -> None:
         """Write self back to json config file"""
         log.info("Writing config to %s", self._path)
+        log.debug("Config: %s", self._to_json_dict())
         with open(self._path, 'w', encoding='utf8') as file:
             file.write(json.dumps(self._to_json_dict(), indent=4, sort_keys=False, ensure_ascii=False))
 
     def preference(self, *args: str) -> Union[str, bool]:
         """Recusively get preference entry as str"""
+        log.debug("Getting preference: `%s`", '.'.join(args))
         level = self._get_entry(self.preferences, *args)
         if not isinstance(level, (str, bool)):
             return str(level)
@@ -61,7 +63,6 @@ class KamyrollConf:
 
 
     def _get_entry(self, segment: dict, *args: str):
-        log.debug("args: %s\nsegment: %s", '.'.join(args), segment)
         level = segment
         for entry in args:
             if entry not in level:
@@ -72,6 +73,7 @@ class KamyrollConf:
 
     def config(self, *args: str) -> str:
         """Recusively get configuration entry as bool or str"""
+        log.debug("Getting configuration: `%s`", '.'.join(args))
         level = self._get_entry(self.configuration, *args)
         return str(level)
 
@@ -86,7 +88,7 @@ class KamyrollConf:
 
 
     def _set_entry(self, segment: dict, val: Union[str, bool, dict], *args: str) -> None:
-        log.debug("value: %s\nargs: %s\nsegment: %s", val, '.'.join(args), segment)
+        log.debug("value: %s --to-- args: %s", val, '.'.join(args))
         level = segment
         for entry in args[:-1]:
             if entry not in level:

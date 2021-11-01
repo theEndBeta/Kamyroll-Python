@@ -39,6 +39,7 @@ class crunchyroll:
         response_json = requests.get(endpoint, params=params).json()
         if utils.check_error(response_json):
             sys.exit(0)
+        # log.debug("StreamData: %s", response_json)
         return response_json
 
 
@@ -94,31 +95,31 @@ class crunchyroll:
             self.download(stream_id)
 
 
-    def download_season(self, season_id: str, episode_range: list[str]):
-        (policy, signature, key_pair_id) = utils.get_token(self.config)
+    # def download_season(self, season_id: str, episode_range: Sequence[int]):
+    #     (policy, signature, key_pair_id) = utils.get_token(self.config)
 
-        params = {
-            'season_id': season_id,
-            'Policy': policy,
-            'Signature': signature,
-            'Key-Pair-Id': key_pair_id,
-            'locale': utils.get_locale(self.config)
-        }
+    #     params = {
+    #         'season_id': season_id,
+    #         'Policy': policy,
+    #         'Signature': signature,
+    #         'Key-Pair-Id': key_pair_id,
+    #         'locale': utils.get_locale(self.config)
+    #     }
 
-        endpoint = 'https://beta-api.crunchyroll.com/cms/v2{}/episodes'.format(self.config.config('token', 'bucket'))
-        response_json = requests.get(endpoint, params=params).json()
-        if utils.check_error(response_json):
-            sys.exit(0)
+    #     endpoint = 'https://beta-api.crunchyroll.com/cms/v2{}/episodes'.format(self.config.config('token', 'bucket'))
+    #     response_json = requests.get(endpoint, params=params).json()
+    #     if utils.check_error(response_json):
+    #         sys.exit(0)
 
-        playlist_id = extractor.playlist(response_json, self.config, episode_range)
+    #     playlist_id = extractor.playlist(response_json, self.config, episode_range)
 
-        if playlist_id == []:
-            log.error('The playlist is empty.')
-            sys.exit(0)
-        else:
-            self.download_all(playlist_id)
-            log.info('The playlist has been downloaded')
-            sys.exit(0)
+    #     if playlist_id == []:
+    #         log.error('The playlist is empty.')
+    #         sys.exit(0)
+    #     else:
+    #         self.download_all(playlist_id)
+    #         log.info('The playlist has been downloaded')
+    #         sys.exit(0)
 
 
     def _download_video(self, metadata: extractor.Metadata, video_url: str, extension: str, audio_language: str) -> None:
@@ -132,12 +133,13 @@ class crunchyroll:
             '-hide_banner',
             '-v', 'warning',
             '-stats',
-            '-i', '{}'.format(video_url)
+            '-i', video_url,
         ]
+        log.debug('Download Video URL: %s', video_url)
+        language_title = utils.get_language_title(self.config.preference('subtitles', 'language'))
         if extension == 'mkv':
             if self.config.preference('download', 'subtitles'):
-                subtitles_path = os.path.join(metadata.path, '{}{}'.format(metadata.output,
-                    utils.get_language_title(self.config.preference('subtitles', 'language'))))
+                subtitles_path = os.path.join(metadata.path, '{}{}'.format(metadata.output, language_title))
 
                 if self.config.preference('subtitles', 'ass') and os.path.exists('{}.ass'.format(subtitles_path)):
                     command += ['-i', '{}.ass'.format(subtitles_path)]
@@ -156,15 +158,16 @@ class crunchyroll:
             command += ['-i', '{}'.format(os.path.join(metadata.path, 'cover.jpg'))]
             index += 1
 
+        command += ['-c', 'copy']
         # command += ['-map', '0:v', '-map', '0:a']
 
-        for i in subs:
-            command += ['-map', str(i)]
+        # for i in subs:
+        #     command += ['-map', str(i)]
 
         if self.config.preference('video', 'attached_picture') and extension == 'mp4':
             command += ['-map', str(index)]
 
-        command += ['-c', 'copy', '-metadata:s:a:0', 'language={}'.format(utils.get_ffmpeg_language(audio_language))]
+        command += ['-metadata:s:a:0', 'language={}'.format(utils.get_ffmpeg_language(audio_language))]
 
         for i in subs:
             command += ['-metadata:s:s:{}'.format(i + 1),
@@ -183,11 +186,10 @@ class crunchyroll:
         if os.path.exists(os.path.join(metadata.path, '{}.{}'.format(metadata.output, extension))):
             log.warn('Video already exists.')
         else:
-            log.info('Download resolution: [{}]'.format(
-                self.config.preference('video', 'resolution')))
+            log.info('Download resolution: [{}]'.format(self.config.preference('video', 'resolution')))
             try:
                 log.debug(command)
-                log.debug(' '.join(command))
+                # log.debug(' '.join(command))
                 subprocess.call(command)
                 log.info('Downloaded video')
             except KeyboardInterrupt:

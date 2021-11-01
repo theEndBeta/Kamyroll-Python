@@ -32,7 +32,7 @@ def decrypt_base64(data):
     return base64_bytes.decode('ascii')
 
 
-def get_playlist_episode(episodes: str, episode_count: int) -> Sequence[int]:
+def get_episode_list(episodes: str, episode_count: int) -> Sequence[int]:
     playlist_episode = []
 
     if '[' in episodes and ']' in episodes:
@@ -73,10 +73,10 @@ def get_numbers(start: int, end: int) -> Sequence[int]:
     return range(start, end + 1)
 
 
-def get_episode_count(list_episode):
+def get_episode_count(episode_list: list[int]) -> int:
     count = 0
-    for i in range(len(list_episode)):
-        episode = int(list_episode[i])
+    for i in range(len(episode_list)):
+        episode = int(episode_list[i])
         if episode > count:
             count = episode
     return count
