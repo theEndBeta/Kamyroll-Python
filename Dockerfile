@@ -2,7 +2,7 @@ FROM python:3
 
 RUN pip install --upgrade pip
 
-RUN mkdir -p /app && chmod 755 /app
+RUN mkdir -p /app/config && chmod -R 0755 /app
 
 WORKDIR /app
 
