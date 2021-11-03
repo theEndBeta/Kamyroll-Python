@@ -13,6 +13,6 @@ COPY . /app
 
 RUN pip install .
 
-RUN cp kamyroll.json.tmpl /app/config/kamyroll.json
+RUN cp /app/kamyroll.json.tmpl /app/config/kamyroll.json
 
 ENTRYPOINT ["kamyroll"]

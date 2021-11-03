@@ -17,9 +17,9 @@ class Metadata(NamedTuple):
     path: str = ""
 
 
-def search(json_search, config: KamyrollConf):
+def search(json_search: dict, config: KamyrollConf):
     result_type = json_search.get('type')
-    items = json_search.get('items')
+    items = json_search.get('items', [])
     premium = utils.has_premium(config)
 
     list_type = list()
@@ -66,30 +66,24 @@ def search(json_search, config: KamyrollConf):
             print('{0:<15} {1:<20} {2:<10} {3:<10} {4:<40}'.format(list_id[i], list_type[i], list_season[i], list_episode[i], list_title[i]))
 
 
-def season(json_season, series_id):
-    items = json_season.get('items')
+def seasons_for_series(json_season: dict, series_id: str) -> None:
+    items = json_season.get('items', [])
 
     log.debug("SeasonsData: %s", items)
 
-    list_id = list()
-    list_title = list()
-    list_season = list()
-    for item in items:
-        list_id.append(item.get('id'))
-        list_title.append(item.get('title'))
-        list_season.append(item.get('season_number'))
+    seasons_info = [(item.get('id'), item.get('title'), item.get('season_number')) for item in items]
 
     print('Season for: %s', series_id)
-    if len(list_id) == 0:
+    if len(seasons_info) == 0:
         log.warn('No season found for this series.')
     else:
         print('{0:<15} {1:<10} {2:<40}'.format('ID', 'Season', 'Title'))
-        for i in range(len(list_id)):
-            print('{0:<15} {1:<10} {2:<40}'.format(list_id[i], list_season[i], list_title[i]))
+        for info_tuple in seasons_info:
+            print('{0:<15} {1:<10} {2:<40}'.format(*info_tuple))
 
 
-def movie(json_movie, movie_id, config: KamyrollConf):
-    items = json_movie.get('items')
+def movie(json_movie: dict, movie_id: str, config: KamyrollConf):
+    items = json_movie.get('items', [])
     premium = utils.has_premium(config)
 
     list_id = list()
@@ -121,42 +115,34 @@ def movie(json_movie, movie_id, config: KamyrollConf):
                 '{0:<15} {1:<15} {2:<20} {3:<40}'.format(list_id[i], utils.boolean_to_str(list_premium_only[i]), utils.get_duration(list_duration_ms[i]), list_title[i]))
 
 
-def episode(json_episode, season_id, config: KamyrollConf):
+def episodes_for_season(json_episode, season_id, config: KamyrollConf) -> list[str]:
     items = json_episode.get('items')
     premium = utils.has_premium(config)
 
     log.debug("EpisodesData: %s", items)
 
-    list_id = list()
-    list_title = list()
-    list_episode = list()
-    list_season = list()
-    list_premium_only = list()
-    for item in items:
-        premium_only = item.get('is_premium_only')
-        if premium_only:
-            if premium:
-                id = utils.get_stream_id(item)
-            else:
-                id = 'None'
-        else:
-            id = utils.get_stream_id(item)
-
-        list_id.append(id)
-        list_title.append(item.get('title'))
-        list_episode.append(item.get('episode'))
-        list_season.append(item.get('season_number'))
-        list_premium_only.append(premium_only)
+    episodes = [
+        (
+            None if item.get("is_premium_only") and not premium else utils.get_stream_id(item),
+            item.get('season_number'),
+            item.get('episode'),
+            item.get('sequence_number'),
+            bool(item.get("is_premium_only")),
+            item.get('title'),
+        ) 
+        for item in items
+    ]
 
     print('Episode for: %s', season_id)
-    if len(list_id) == 0:
+    if len(episodes) == 0:
         log.warn('No episode found for this season.')
     else:
         print(
-            '{0:<15} {1:<10} {2:<10} {3:<15} {4:<40}'.format('Stream ID', 'Season', 'Episode', 'Premium only', 'Title'))
-        for i in range(len(list_id)):
-            print(
-                '{0:<15} {1:<10} {2:<10} {3:<15} {4:<40}'.format(list_id[i], list_season[i], list_episode[i], utils.boolean_to_str(list_premium_only[i]), list_title[i]))
+            '{0:<15} {1:<10} {2:<10} {3:<10} {4:<15} {5:<40}'.format('Stream ID', 'Season', 'Episode', 'Sequence', 'Premium only', 'Title'))
+        for info in episodes:
+            print('{0:<15} {1:<10} {2:<10} {3:<10} {4:<15} {5:<40}'.format(*info))
+
+    return([info[0] for info in episodes if info[0] is not None])
 
 
 # def playlist(json_episode, config, episode_range: Sequence[int]):
@@ -309,13 +295,16 @@ def get_metadata(type, id, config: KamyrollConf) -> Metadata:
             path = os.path.join(path, series_title, 'Season {:02}'.format(season_number))
 
         # Handle episide 11.5, etc
-        sequence_str: str = str(sequence_number)
+        episode_str: str = str(sequence_number)
         if isinstance(sequence_number, float):
-            sequence_str = "{:03.1f}".format(sequence_number)
+            episode_str = "{:03.1f}".format(sequence_number)
         else:
-            sequence_str = "{:02d}".format(sequence_number)
+            episode_str = "{:02d}".format(sequence_number)
 
-        output = '{} S{:02}.E{} - {}'.format(series_title, season_number, sequence_str, title)
+        if str(sequence_number) != str(episode):
+            episode_str = "{} ({})".format(episode_str, episode)
+
+        output = '{} S{:02}.E{} - {}'.format(series_title, season_number, episode_str, title)
 
         metadata += ['-metadata', 'genre="{}"'.format(utils.get_metadata_genre(config)),
                      '-metadata', 'date="{}"'.format(episode_air_date),

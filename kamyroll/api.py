@@ -123,7 +123,7 @@ class crunchyroll:
         if utils.check_error(r):
             sys.exit(0)
 
-        extractor.season(r, series_id)
+        extractor.seasons_for_series(r, series_id)
         sys.exit(0)
 
     def episode(self, season_id):
@@ -143,8 +143,7 @@ class crunchyroll:
         if utils.check_error(r):
             sys.exit(0)
 
-        extractor.episode(r, season_id, self.config)
-        sys.exit(0)
+        return extractor.episodes_for_season(r, season_id, self.config)
 
     def movie(self, movie_id):
         (policy, signature, key_pair_id) = utils.get_token(self.config)
