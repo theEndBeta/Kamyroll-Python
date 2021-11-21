@@ -17,33 +17,69 @@ class Metadata(NamedTuple):
     path: str = ""
 
 
-class SearchResult(NamedTuple):
-    id: str = ""
-    id2: str = ""
-    type: str = ""
-    title: str = ""
-    year: str = ""
+def outputShow(show: dict, with_children: bool=False) -> str:
+    """Print information for a single show"""
+    fields = {
+        'id': 'ID',
+        'externalItemId': 'ExternalID',
+        'order': 'Order',
+        'number': 'Number',
+        'releaseYear': 'ReleaseYear',
+        'title': 'Title',
+        'type': 'Type',
+        'subtitles': 'Subs',
+        'audio': 'Audio',
+    }
+
+    for field, display in fields:
+        print('{:<20}: {}'.format(display, show.get(field, '')))
+
+    if with_children:
+        outputSeasonList(show.get('children', []))
+
+    return show.get('id', '')
 
 
-
-def outputSeriesList(series_results: list[dict]) -> None:
-    """Print a table containing a list of series"""
+def outputShowsList(show_results: list[dict]) -> list[str]:
+    """Print a table containing a list of shows"""
     header_fields = ('ID', 'ExternalID', 'Year', 'Title')
     table_format_list = ['{:<10}']*(len(header_fields) - 1)
     table_format_list.append('{:<40}')
     table_format = ' '.join(table_format_list)
 
     print(table_format.format(*header_fields))
-    for series in series_results:
+    for show in show_results:
         print(table_format.format(
-            series.get('venueId', ''),
-            series.get('id', ''),
-            series.get('releaseYear', ''),
-            series.get('title', ''),
+            show.get('venueId', ''),
+            show.get('id', ''),
+            show.get('releaseYear', ''),
+            show.get('title', ''),
         ))
 
+    return [show.get('id', '') for show in show_results]
 
-def outputSeasonList(season_results: list[dict]) -> None:
+
+def outputSeason(season: dict, with_children: bool=False) -> str:
+    """Print information for a single season"""
+    fields = {
+        'id': 'ID',
+        'externalItemId': 'ExternalID',
+        'order': 'Order',
+        'number': 'Number',
+        'title': 'Title',
+    }
+
+    print('{:<20}: {}'.format('Show', season.get('item', {}).get('titleName', '')))
+    for field, display in fields:
+        print('{:<20}: {}'.format(display, season.get(field, '')))
+
+    if with_children:
+        outputEpisodeList(season.get('children', []))
+
+    return season.get('id', '')
+
+
+def outputSeasonList(season_results: list[dict]) -> list[str]:
     """Print a table containing a list of seasons"""
     header_fields = ('ID', 'ExternalID', 'Order', 'Episodes', 'Title')
     table_format_list = ['{:<15}']*(len(header_fields) - 1)
@@ -59,9 +95,10 @@ def outputSeasonList(season_results: list[dict]) -> None:
             season.get('childCount'),
             season.get('title', ''),
         ))
+    return [season.get('id', '') for season in season_results]
 
 
-def outputEpisode(episode: dict) -> None:
+def outputEpisode(episode: dict) -> str:
     """Print information for a single episode"""
     fields = {
         'id': 'ID',
@@ -72,14 +109,18 @@ def outputEpisode(episode: dict) -> None:
         'releaseDate': 'ReleaseDate',
         'subscriptionRequired': 'SubscriptionRequired',
         'title': 'Title',
+        'seasonTitle': 'SeasonTitle',
+        'seriesTitle': 'SeriesTitle',
         'description': 'Description',
     }
 
     for field, display in fields:
         print('{:<20}: {}'.format(display, episode.get(field, '')))
 
+    return episode.get('id', '')
 
-def outputEpisodeList(episode_results: list[dict]) -> None:
+
+def outputEpisodeList(episode_results: list[dict]) -> list[str]:
     """Print a table containing a list of episodes"""
     header_fields = ('ID', 'ExternalID', 'Order', 'Number', 'Quality', 'Release', 'Premium?' , 'Title')
     table_format_list = ['{:<10}']*(len(header_fields) - 1)
@@ -99,32 +140,32 @@ def outputEpisodeList(episode_results: list[dict]) -> None:
             episode.get('title', ''),
         ))
 
+    return [episode.get('id', '') for episode in episode_results]
 
-def search(json_search: dict, config: KamyrollConf):
-    result_type = json_search.get('type')
+
+def outputSearchShowsResults(json_search: dict):
     items = json_search.get('items', {}).get('hits', [])
-    # premium = utils.has_premium(config)
 
     if len(items) == 0:
         log.warn('No results found')
     else:
-        outputSeriesList(items)
+        return outputShowsList(items)
 
 
-def seasons_for_series(json_season: dict, series_id: str) -> None:
-    items = json_season.get('items', [])
+# def seasons_for_series(json_season: dict, series_id: str) -> None:
+#     items = json_season.get('items', [])
 
-    log.debug("SeasonsData: %s", items)
+#     log.debug("SeasonsData: %s", items)
 
-    seasons_info = [(item.get('id'), item.get('title'), item.get('season_number')) for item in items]
+#     seasons_info = [(item.get('id'), item.get('title'), item.get('season_number')) for item in items]
 
-    print('Season for: %s', series_id)
-    if len(seasons_info) == 0:
-        log.warn('No season found for this series.')
-    else:
-        print('{0:<15} {1:<10} {2:<40}'.format('ID', 'Season', 'Title'))
-        for info_tuple in seasons_info:
-            print('{0:<15} {1:<10} {2:<40}'.format(*info_tuple))
+#     print('Season for: %s', series_id)
+#     if len(seasons_info) == 0:
+#         log.warn('No season found for this series.')
+#     else:
+#         print('{0:<15} {1:<10} {2:<40}'.format('ID', 'Season', 'Title'))
+#         for info_tuple in seasons_info:
+#             print('{0:<15} {1:<10} {2:<40}'.format(*info_tuple))
 
 
 def movie(json_movie: dict, movie_id: str, config: KamyrollConf):

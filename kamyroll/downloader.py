@@ -7,6 +7,7 @@ import kamyroll.converter as converter
 import kamyroll.extractor as extractor
 import kamyroll.utils as utils
 from kamyroll.config import KamyrollConf
+from kamyroll.api import crunchyroll as KamyAPI
 import subprocess
 
 log = logging.getLogger(__name__)
@@ -21,8 +22,9 @@ def image(output, url):
 
 class crunchyroll:
 
-    def __init__(self, config: KamyrollConf):
+    def __init__(self, config: KamyrollConf, api: KamyAPI):
         self.config = config
+        self.api = api
 
 
     def __request_stream_data(self, stream_id: str):
@@ -52,10 +54,10 @@ class crunchyroll:
         sys.exit(0)
 
 
-    def download(self, stream_id: str) -> None:
+    def download(self, episode_id: str) -> None:
         """Download a video and accoutrements from stream id
         """
-        response = self.__request_stream_data(stream_id)
+        response = self.__request_stream_data(episode_id)
         (video_url, subtitles_url, audio_language) = extractor.download_url(response, self.config)
         (type, id) = utils.get_download_type(response)
         metadata = extractor.get_metadata(type, id, self.config)

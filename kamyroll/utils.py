@@ -111,7 +111,11 @@ def get_headers(config: KamyrollConf, with_auth: bool = True) -> CaseInsensitive
     headers = CaseInsensitiveDict({
         'User-Agent': config.config('headers', 'user_agent'),
         'devicetype': config.config('headers', 'devicetype'),
-        # 'Content-Type': 'application/x-www-form-urlencoded',
+        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'origin': 'https://www.funimation.com',
+        'referer': 'https://www.funimation.com/',
+        'accept-encoding': 'gzip, deflate, br',
+        'accept': 'application/json, text/javascript, */*; q=0.01',
     })
 
     if with_auth:

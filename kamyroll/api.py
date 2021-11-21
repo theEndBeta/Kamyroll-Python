@@ -21,77 +21,20 @@ class crunchyroll:
         }
         log.debug({**data, password: ""})
 
-        session.headers.update({
-            'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-            'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.30 Safari/537.36',
-            'origin': 'https://www.funimation.com',
-            'referer': 'https://www.funimation.com/',
-            'accept-encoding': 'gzip, deflate, br',
-            'accept': 'application/json, text/javascript, */*; q=0.01',
-        })
         response_json = session.post('https://prod-api-funimationnow.dadcdigital.com/api/auth/login/', data=data).json()
-        # log.info(response_json)
-        # sys.exit(0)
         if utils.check_error(response_json):
             sys.exit(0)
 
-        access_token = response_json.get('token')
         self.config.set_conf(response_json.get('token'), 'token', 'access_token')
         self.config.set_conf(response_json.get('user', {}).get('id'), 'account', 'account_id')
         self.config.set_conf(response_json.get('user_region'), 'user_region')
-        # self.config.set_conf('premium' in response_json.get('rlildup_cookie', ''), 'account', 'account_id')
         self.config.save()
 
-        authorization = {'Authorization': '{} {}'.format('Token', access_token)}
-        is_premium = "premium" in response_json.get('rlildup_cookie', "")
-
-        headers = utils.get_headers(self.config)
-        headers.update(authorization)
+        headers = utils.get_headers(self.config, with_auth=True)
         session.headers = headers
-
-        # response_json = session.get('https://beta-api.crunchyroll.com/accounts/v1/me').json()
-        # if utils.check_error(response_json):
-        #     sys.exit(0)
-
-        # external_id = response_json.get('external_id')
-
-        # response_json = session.get('https://beta-api.crunchyroll.com/accounts/v1/me/profile').json()
-        # if utils.check_error(response_json):
-        #     sys.exit(0)
-
-        # email = response_json.get('email')
-        # username = response_json.get('username')
-
-        # response_json = session.get('https://beta-api.crunchyroll.com/index/v2').json()
-        # if utils.check_error(response_json):
-        #     sys.exit(0)
-
-        # cms = response_json.get('cms')
-        # bucket = cms.get('bucket')
-        # policy = cms.get('policy')
-        # signature = cms.get('signature')
-        # key_pair_id = cms.get('key_pair_id')
-        # expires = cms.get('expires')
-
-        # self.config.set_conf(refresh_token, 'token', 'refresh_token')
-        # self.config.set_conf(bucket, 'token', 'bucket')
-        # self.config.set_conf(policy, 'token', 'policy')
-        # self.config.set_conf(signature, 'token', 'signature')
-        # self.config.set_conf(key_pair_id, 'token', 'key_pair_id')
-        # self.config.set_conf(expires, 'token', 'expires')
-
-        # self.config.set_conf(account_id, 'account', 'account_id')
-        # self.config.set_conf(external_id, 'account', 'external_id')
-        # self.config.set_conf(email, 'account', 'email')
-        # self.config.set_conf(password, 'account', 'password')
-        # self.config.set_conf(username, 'account', 'username')
-
-        # log.info('Connected account: [%s]', email)
-
-        # self.config.save()
         sys.exit(0)
 
-    def search(self, query):
+    def searchShows(self, query):
         headers = utils.get_headers(self.config, with_auth=True)
 
         session = utils.get_session(self.config)
@@ -111,30 +54,30 @@ class crunchyroll:
         if utils.check_error(r):
             sys.exit(0)
 
-        extractor.search(r, self.config)
+        extractor.outputSearchShowsResults(r)
         sys.exit(0)
 
 
-    def series(self, series_id: str):
+    def getShowData(self, show_id: str):
         headers = utils.get_headers(self.config, with_auth=True)
 
         session = utils.get_session(self.config)
         session.headers = headers
 
-        r = session.get('https://prod-api-funimationnow.dadcdigital.com/api/source/catalog/title/{}'.format(series_id)).json()
+        r = session.get('https://prod-api-funimationnow.dadcdigital.com/api/source/catalog/title/{}'.format(show_id)).json()
         log.debug(r)
         if utils.check_error(r):
             sys.exit(0)
 
-        series = r.get('items', [])
-        if len(series) == 0:
-            print("No series found")
+        shows = r.get('items', [])
+        if len(shows) == 0:
+            print("No shows found")
             return
 
-        extractor.outputSeasonList(series[0].get('children', []))
+        extractor.outputShow(shows[0], with_children=True)
 
 
-    def season(self, season_id: str) -> None:
+    def getSeasonData(self, season_id: str) -> None:
         headers = utils.get_headers(self.config, with_auth=True)
 
         session = utils.get_session(self.config)
@@ -147,13 +90,13 @@ class crunchyroll:
 
         seasons = r.get('items', [])
         if len(seasons) == 0:
-            print("No series found")
+            print("No shows found")
             return
 
-        extractor.outputEpisodeList(seasons[0].get('children', []))
+        extractor.outputSeason(seasons[0], with_children=True)
 
 
-    def episode(self, episode_id: str)-> None:
+    def getEpisodeData(self, episode_id: str) -> dict:
         headers = utils.get_headers(self.config, with_auth=True)
 
         session = utils.get_session(self.config)
@@ -166,10 +109,11 @@ class crunchyroll:
 
         episodes = r.get('items', [])
         if len(episodes) == 0:
-            print("No series found")
-            return
+            print("No episodes found")
+        else:
+            extractor.outputEpisode(episodes[0])
 
-        extractor.outputEpisodeList(episodes[0].get('children', []))
+        return episodes[0]
 
 
     def movie(self, movie_id):
