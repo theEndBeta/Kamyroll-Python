@@ -82,30 +82,9 @@ def get_episode_count(episode_list: list[int]) -> int:
     return count
 
 
-def get_authorization(config: KamyrollConf, refresh):
-    if refresh:
-        session = get_session(config)
-
-        refresh_token = config.config('token', 'refresh_token')
-        data = {
-            'refresh_token': refresh_token,
-            'grant_type': 'refresh_token',
-            'scope': 'offline_access'
-        }
-
-        session.headers.update(get_authorization(config, False))
-        r = session.post('https://beta-api.crunchyroll.com/auth/v1/token', data=data).json()
-        if check_error(r):
-            sys.exit(0)
-
-        access_token = r.get('access_token')
-        refresh_token = r.get('refresh_token')
-        token_type = r.get('token_type')
-        config.set_conf(refresh_token, 'token', 'refresh_token')
-        config.save()
-    else:
-        token_type = config.config('token', 'token_type')
-        access_token = config.config('token', 'access_token')
+def get_authorization(config: KamyrollConf) -> dict[str, str]:
+    token_type = config.config('token', 'token_type')
+    access_token = config.config('token', 'access_token')
     return {'Authorization': '{} {}'.format(token_type, access_token)}
 
 
@@ -128,11 +107,17 @@ def check_error(json_request: dict) -> bool:
         return False
 
 
-def get_headers(config: KamyrollConf) -> CaseInsensitiveDict[str]:
-    return CaseInsensitiveDict({
-        'User-Agent': config.config('user_agent'),
-        'Content-Type': 'application/x-www-form-urlencoded',
+def get_headers(config: KamyrollConf, with_auth: bool = True) -> CaseInsensitiveDict[str]:
+    headers = CaseInsensitiveDict({
+        'User-Agent': config.config('headers', 'user_agent'),
+        'devicetype': config.config('headers', 'devicetype'),
+        # 'Content-Type': 'application/x-www-form-urlencoded',
     })
+
+    if with_auth:
+        headers.update(get_authorization(config))
+
+    return headers
 
 
 def get_locale(config: KamyrollConf):
@@ -245,6 +230,7 @@ def get_session(config: KamyrollConf):
             sys.exit(0)
         session.proxies.update(proxies)
 
+    session.get("https://www.funimation.com/log-in")
     return session
 
 

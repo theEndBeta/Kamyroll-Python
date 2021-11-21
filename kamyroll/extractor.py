@@ -3,7 +3,7 @@ import os
 import sys
 from datetime import datetime
 import requests
-from typing import Tuple, NamedTuple, Sequence
+from typing import Tuple, NamedTuple, Generator
 import kamyroll.utils as utils
 from kamyroll.config import KamyrollConf
 
@@ -17,53 +17,98 @@ class Metadata(NamedTuple):
     path: str = ""
 
 
+class SearchResult(NamedTuple):
+    id: str = ""
+    id2: str = ""
+    type: str = ""
+    title: str = ""
+    year: str = ""
+
+
+
+def outputSeriesList(series_results: list[dict]) -> None:
+    """Print a table containing a list of series"""
+    header_fields = ('ID', 'ExternalID', 'Year', 'Title')
+    table_format_list = ['{:<10}']*(len(header_fields) - 1)
+    table_format_list.append('{:<40}')
+    table_format = ' '.join(table_format_list)
+
+    print(table_format.format(*header_fields))
+    for series in series_results:
+        print(table_format.format(
+            series.get('venueId', ''),
+            series.get('id', ''),
+            series.get('releaseYear', ''),
+            series.get('title', ''),
+        ))
+
+
+def outputSeasonList(season_results: list[dict]) -> None:
+    """Print a table containing a list of seasons"""
+    header_fields = ('ID', 'ExternalID', 'Order', 'Episodes', 'Title')
+    table_format_list = ['{:<15}']*(len(header_fields) - 1)
+    table_format_list.append('{:<40}')
+    table_format = ' '.join(table_format_list)
+
+    print(table_format.format(*header_fields))
+    for season in season_results:
+        print(table_format.format(
+            season.get('id', ''),
+            season.get('externalItemId', ''),
+            season.get('order'),
+            season.get('childCount'),
+            season.get('title', ''),
+        ))
+
+
+def outputEpisode(episode: dict) -> None:
+    """Print information for a single episode"""
+    fields = {
+        'id': 'ID',
+        'externalItemId': 'ExternalID',
+        'order': 'Order',
+        'number': 'Number',
+        'quality': 'Quality',
+        'releaseDate': 'ReleaseDate',
+        'subscriptionRequired': 'SubscriptionRequired',
+        'title': 'Title',
+        'description': 'Description',
+    }
+
+    for field, display in fields:
+        print('{:<20}: {}'.format(display, episode.get(field, '')))
+
+
+def outputEpisodeList(episode_results: list[dict]) -> None:
+    """Print a table containing a list of episodes"""
+    header_fields = ('ID', 'ExternalID', 'Order', 'Number', 'Quality', 'Release', 'Premium?' , 'Title')
+    table_format_list = ['{:<10}']*(len(header_fields) - 1)
+    table_format_list.append('{:<40}')
+    table_format = ' '.join(table_format_list)
+
+    print(table_format.format(*header_fields))
+    for episode in episode_results:
+        print(table_format.format(
+            episode.get('id', ''),
+            episode.get('externalItemId', ''),
+            episode.get('order'),
+            episode.get('number'),
+            str(list(episode.get('quality', {}).values())),
+            episode.get('releaseDate'),
+            episode.get('subscriptionRequired'),
+            episode.get('title', ''),
+        ))
+
+
 def search(json_search: dict, config: KamyrollConf):
     result_type = json_search.get('type')
-    items = json_search.get('items', [])
-    premium = utils.has_premium(config)
+    items = json_search.get('items', {}).get('hits', [])
+    # premium = utils.has_premium(config)
 
-    list_type = list()
-    list_id = list()
-    list_title = list()
-    list_episode = list()
-    list_season = list()
-    for item in items:
-        item_type = item.get('type')
-        if item_type == 'series':
-            list_type.append(item_type)
-            list_id.append(item.get('id'))
-            list_title.append(item.get('title'))
-            list_episode.append(item.get('series_metadata').get('episode_count'))
-            list_season.append(item.get('series_metadata').get('season_count'))
-        elif item_type == 'episode':
-            list_type.append(item_type)
-            premium_only = item.get('episode_metadata').get('is_premium_only')
-            if premium_only:
-                if premium:
-                    id = utils.get_stream_id(item)
-                else:
-                    id = 'None'
-            else:
-                id = utils.get_stream_id(item)
-
-            list_id.append(id)
-            list_title.append(item.get('title'))
-            list_episode.append(item.get('episode_metadata').get('episode'))
-            list_season.append(item.get('episode_metadata').get('season_number'))
-        elif item_type == 'movie_listing':
-            list_type.append(item_type)
-            list_id.append(item.get('id'))
-            list_title.append(item.get('title'))
-            list_episode.append('None')
-            list_season.append('None')
-
-    print('Result for: %s', result_type)
-    if len(list_id) == 0:
-        log.warn('No media found for this category.')
+    if len(items) == 0:
+        log.warn('No results found')
     else:
-        print('{0:<15} {1:<20} {2:<10} {3:<10} {4:<40}'.format('ID', 'Type', 'Season', 'Episode', 'Title'))
-        for i in range(len(list_id)):
-            print('{0:<15} {1:<20} {2:<10} {3:<10} {4:<40}'.format(list_id[i], list_type[i], list_season[i], list_episode[i], list_title[i]))
+        outputSeriesList(items)
 
 
 def seasons_for_series(json_season: dict, series_id: str) -> None:

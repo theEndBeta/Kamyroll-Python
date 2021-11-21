@@ -82,7 +82,7 @@ class KamyrollConf:
         self._set_entry(self.preferences, val, *args)
 
 
-    def set_conf(self, val: Union[str, dict], *args) -> None:
+    def set_conf(self, val: Union[str, dict, bool], *args) -> None:
         """Set a config value"""
         self._set_entry(self.configuration, val, *args)
 

@@ -23,7 +23,8 @@ def run():
 
     parser.add_argument('--login',    '-l',   type=str,     help='Login with ID (`<username>:<password>`)')
     parser.add_argument('--search',           type=str,     help='Search a series, films, episode')
-    parser.add_argument('--season',   '-s',   type=str,     help='Show seasons of a series (by series id)')
+    parser.add_argument('--series',           type=str,     help='Show seasons for the given series id')
+    parser.add_argument('--season',   '-s',   type=str,     help='Show episodes of a season (for given season id)')
     parser.add_argument('--episode',  '-e',   type=str,     help='Show episodes of a season (by season id)')
     parser.add_argument('--movie',    '-m',   type=str,     help='Show movies from a movie list (by movie id)')
     parser.add_argument('--url',      '-u',   type=str,     help='Show m3u8 url of episode or movie (by episode id)')
@@ -74,6 +75,8 @@ def run():
         cr_api.login(username, password)
     elif args.search:
         cr_api.search(args.search)
+    elif args.series:
+        cr_api.series(args.series)
     elif args.season:
         cr_api.season(args.season)
     elif args.episode:
