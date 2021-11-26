@@ -1,17 +1,22 @@
 import logging
 import os
 import sys
-from datetime import datetime
+import re
 import requests
-from typing import Tuple, NamedTuple, Generator
+from typing import Tuple, NamedTuple
 import kamyroll.utils as utils
 from kamyroll.config import KamyrollConf
 
 log = logging.getLogger(__name__)
 
+res_pat = re.compile(r'RESOLUTION=(\d+)x(\d+),', re.IGNORECASE)
+uri_pat = re.compile(r'URI="(.*?)"', re.IGNORECASE)
+audio_pat = re.compile(r'AUDIO="(.*?)"', re.IGNORECASE)
+group_pat = re.compile(r'GROUP-ID="(.*?)"', re.IGNORECASE)
+
+
 class Metadata(NamedTuple):
     metadata: list[str] = []
-    cover: str = ""
     thumbnail: str = ""
     output: str = ""
     path: str = ""
@@ -31,8 +36,8 @@ def outputShow(show: dict, with_children: bool=False) -> str:
         'audio': 'Audio',
     }
 
-    for field, display in fields:
-        print('{:<20}: {}'.format(display, show.get(field, '')))
+    for (field, display) in fields.items():
+        print('{:>20}: {}'.format(display, show.get(field, '')))
 
     if with_children:
         outputSeasonList(show.get('children', []))
@@ -69,9 +74,9 @@ def outputSeason(season: dict, with_children: bool=False) -> str:
         'title': 'Title',
     }
 
-    print('{:<20}: {}'.format('Show', season.get('item', {}).get('titleName', '')))
-    for field, display in fields:
-        print('{:<20}: {}'.format(display, season.get(field, '')))
+    print('{:>20}: {}'.format('Show', season.get('item', {}).get('titleName', '')))
+    for (field, display) in fields.items():
+        print('{:>20}: {}'.format(display, season.get(field, '')))
 
     if with_children:
         outputEpisodeList(season.get('children', []))
@@ -114,8 +119,8 @@ def outputEpisode(episode: dict) -> str:
         'description': 'Description',
     }
 
-    for field, display in fields:
-        print('{:<20}: {}'.format(display, episode.get(field, '')))
+    for (field, display) in fields.items():
+        print('{:>20}: {}'.format(display, episode.get(field, '')))
 
     return episode.get('id', '')
 
@@ -277,155 +282,137 @@ def episodes_for_season(json_episode, season_id, config: KamyrollConf) -> list[s
 #     return playlist_id
 
 
-def download_url(json_stream, config: KamyrollConf) -> Tuple[str, str, str]:
-    video_url = ""
-    subtitles_url = ""
-    subtitles_language = config.preference('subtitles', 'language')
-    video_hardsub = config.preference('video', 'hardsub')
-
-    # log.debug("JSON Stream: %s", json_stream)
-
-    json_video = json_stream.get('streams').get('adaptive_hls', "")
-    json_subtitles = json_stream.get('subtitles', "")
-    audio_language = json_stream.get('audio_locale', "")
-
-    log.debug("JSON Video: %s", json_video)
-    log.debug("JSON Subtitles: %s", json_subtitles)
-    log.debug("JSON audio_locale: %s", audio_language)
-
-    log.info('Audio language: [{}]'.format(audio_language))
-    log.info('Available subtitle language: {}'.format(utils.get_language_available(json_video)))
-
-    if video_hardsub:
-        if subtitles_language in json_video:
-            video_url = json_video.get(subtitles_language).get('url', "")
-        elif config.preference('download', 'video'):
-            log.warn('The language of the settings subtitles is not available for the hardsub.')
-    else:
-        video_url = json_video.get('').get('url')
-
-    if subtitles_language in json_subtitles:
-        subtitles_url = json_subtitles.get(subtitles_language).get('url')
-    elif config.preference('download', 'subtitles'):
-        log.warn('The language of the settings subtitles is not available.')
-
-    if video_url != "":
-        video_url = get_m3u8_url(video_url, config)
-
-    log.debug("Video URL: %s", video_url)
-    return video_url, subtitles_url, audio_language
-
-
-def get_m3u8_url(video_url: str, config: KamyrollConf) -> str:
+def getVideoURL(video_options: list[dict], config: KamyrollConf) -> str:
     resolution = str(config.preference('video', 'resolution'))
-    m3u8_url = ""
-    resolution_available = list()
-    r = requests.get(video_url).text
-    items = r.split('#EXT-X-STREAM')
+    def _filter(video):
+        return str(video.get('mediaInfo', {}).get('frameHeight', 0)) == resolution
+
+    return next(
+            (video.get('filePath', '') for video in video_options if _filter(video)),
+            video_options[0].get('filePath', '')
+        )
+
+
+def streamURLsFromIndex(index_m3u8_url: str, config: KamyrollConf) -> Tuple[str, str]:
+    requested_resolution = str(config.preference('video', 'resolution'))
+    video_url = ""
+    audio_group = ""
+    resolution_option = set()
+    index = requests.get(index_m3u8_url).text
+    entries = index.split('\n')
+
+    items = index.split('#EXT-X-STREAM')
+
     log.debug(items)
-    for item in items:
-        if 'RESOLUTION' in item:
-            m3u8_resolution = item.split('RESOLUTION=')[1].split(',')[0].split('x')[1].strip()
-            if not m3u8_resolution in resolution_available:
-                resolution_available.append(m3u8_resolution)
-            if resolution in item:
-                m3u8_url = 'http{}'.format(item.split('http')[1].strip())
 
-    log.info('Video resolution available: {}'.format(resolution_available))
-    return m3u8_url
+    audio_options = {}
+    for idx, item in enumerate(entries):
+        if item.startswith('#EXT-X-MEDIA') and "TYPE=AUDIO" in item:
+            group_match = group_pat.search(item)
+            uri_match = uri_pat.search(item)
+            if group_match and uri_match:
+                audio_options[group_match.group(1)] = uri_match.group(1)
+        elif item.startswith('#EXT-X-STREAM-INF'):
+            res_match = res_pat.search(item)
+            audio_match = audio_pat.search(item)
+            if res_match is not None:
+                match_resolution = res_match.group(2)
+                resolution_option.add(match_resolution)
+                if match_resolution == requested_resolution:
+                    video_url = entries[idx + 1].strip()
+                    if audio_match:
+                        audio_group = audio_match.group(1)
+
+    log.info('Video resolution available: {}'.format(resolution_option))
+    return (video_url, audio_options.get(audio_group, ''))
 
 
-def get_metadata(type, id, config: KamyrollConf) -> Metadata:
-    (policy, signature, key_pair_id) = utils.get_token(config)
+def getEpisodeExperience(episode_data: dict, language_code: str='ja') -> dict:
+    media_info = episode_data.get('media', {})
+    if len(media_info) == 0:
+        return {}
 
-    params = {
-        'Policy': policy,
-        'Signature': signature,
-        'Key-Pair-Id': key_pair_id,
-        'locale': utils.get_locale(config)
-    }
+    def _mediaFilter(media: dict) -> bool:
+        return (
+            media.get('mediaType', '') == 'experience'
+            and media.get('languages', [{}])[0].get('code', '').lower() == language_code.lower()
+        )
 
-    endpoint = 'https://beta-api.crunchyroll.com/cms/v2{}/{}/{}'.format(config.config('token', 'bucket'), type, id)
-    r = requests.get(endpoint, params=params).json()
-    if utils.check_error(r):
-        sys.exit(0)
+    return next((media for media in media_info if _mediaFilter(media)), {})
 
-    log.debug("MetadataJSON: %s", r)
 
-    if type == 'episodes':
-        series_id = r.get('series_id')
-        series_title = r.get('series_title')
-        season_number = r.get('season_number')
-        episode = r.get('episode')
-        episode_number = r.get('episode_number')
-        sequence_number = r.get('sequence_number')
-        title = r.get('title')
-        description = r.get('description')
+def getEpisodeMetadata(episode_data: dict, config: KamyrollConf) -> Metadata:
 
-        episode_air_date = r.get('episode_air_date')
-        if '+' in episode_air_date:
-            episode_air_date = '{}Z'.format(episode_air_date.split('+')[0])
-        episode_air_date = datetime.strptime(episode_air_date, '%Y-%m-%dT%H:%M:%SZ')
+    metadata = []
+
+    if episode_data.get('type', '') == 'episode':
+        parent = episode_data.get('parent', {})
+        series_title = parent.get('title', '')
+        season_number = parent.get('seasonNumber', '')
+        episode_number = episode_data.get('number', '')
+        order = episode_data.get('order', -1)
+        title = episode_data.get('title', '')
+        description = episode_data.get('description', '')
+        release_date = episode_data.get('releaseDate', '')
 
         series_title = utils.check_characters(series_title)
         title = utils.check_characters(title)
         description = utils.check_characters(description)
 
-        (cover, metadata) = get_cover(series_id, 'series', config)
-        thumbnail = r.get('images').get('thumbnail')[0][-1].get('source')
+        # (cover, metadata) = get_cover(series_id, 'series', config)
+        thumbnail = episode_data.get('filename', '')
 
         path = str(config.preference('download', 'path'))
         if path is None:
-            path = os.path.join(series_title, 'Season {:02}'.format(season_number))
+            path = os.path.join(series_title, 'Season {:0>2}'.format(season_number))
         else:
-            path = os.path.join(path, series_title, 'Season {:02}'.format(season_number))
+            path = os.path.join(path, series_title, 'Season {:0>2}'.format(season_number))
 
-        # Handle episide 11.5, etc
-        episode_str: str = str(sequence_number)
-        if isinstance(sequence_number, float):
-            episode_str = "{:03.1f}".format(sequence_number)
-        else:
-            episode_str = "{:02d}".format(sequence_number)
+        # # Handle episide 11.5, etc
+        # episode_str: str = str(sequence_number)
+        # if isinstance(sequence_number, float):
+        #     episode_str = "{:03.1f}".format(sequence_number)
+        # else:
+        #     episode_str = "{:02d}".format(sequence_number)
 
-        if str(sequence_number) != str(episode):
-            episode_str = "{} ({})".format(episode_str, episode)
+        # if str(sequence_number) != str(episode):
+        #     episode_str = "{} ({})".format(episode_str, episode)
 
-        output = '{} S{:02}.E{} - {}'.format(series_title, season_number, episode_str, title)
+        output = '{} S{:0>2}.E{:0>2} - {}'.format(series_title, season_number, episode_number, title)
 
-        metadata += ['-metadata', 'genre="{}"'.format(utils.get_metadata_genre(config)),
-                     '-metadata', 'date="{}"'.format(episode_air_date),
-                     '-metadata', 'show="{}"'.format(series_title),
-                     '-metadata', 'season_number="{}"'.format(season_number),
-                     '-metadata', 'episode_sort="{}"'.format(sequence_number),
-                     '-metadata', 'episode="{}"'.format(episode),
-                     '-metadata', 'episode_number="{}"'.format(episode_number),
-                     '-metadata', 'title="{}"'.format(title),
-                     '-metadata', 'description="{}"'.format(description)]
+        metadata += [
+            '-metadata', 'date="{}"'.format(release_date),
+            '-metadata', 'show="{}"'.format(series_title),
+            '-metadata', 'season_number="{}"'.format(season_number),
+            '-metadata', 'episode_sort="{}"'.format(order),
+            '-metadata', 'episode="{}"'.format(episode_number),
+            '-metadata', 'title="{}"'.format(title),
+            '-metadata', 'description="{}"'.format(description),
+        ]
 
-    elif type == 'movies':
-        listing_id = r.get('listing_id')
-        title = r.get('title')
-        description = r.get('description')
-        (cover, metadata) = get_cover(listing_id, 'movie_listings', config)
-        thumbnail = r.get('images').get('thumbnail')[0][-1].get('source')
+    # elif type == 'movies':
+    #     listing_id = experience.get('listing_id')
+    #     title = experience.get('title')
+    #     description = experience.get('description')
+    #     (cover, metadata) = get_cover(listing_id, 'movie_listings', config)
+    #     thumbnail = experience.get('images').get('thumbnail')[0][-1].get('source')
 
-        title = utils.check_characters(title)
-        description = utils.check_characters(description)
+    #     title = utils.check_characters(title)
+    #     description = utils.check_characters(description)
 
-        path = str(config.preference('download', 'path'))
-        if path is None:
-            path = os.path.join(title)
-        else:
-            path = os.path.join(path, title)
+    #     path = str(config.preference('download', 'path'))
+    #     if path is None:
+    #         path = os.path.join(title)
+    #     else:
+    #         path = os.path.join(path, title)
 
-        output = '[Movie] {}'.format(title)
-        metadata += ['-metadata', 'genre="{}"'.format(utils.get_metadata_genre(config)),
-                     '-metadata', 'title="{}"'.format(title),
-                     '-metadata', 'description="{}"'.format(description)]
+    #     output = '[Movie] {}'.format(title)
+    #     metadata += ['-metadata', 'genre="{}"'.format(utils.get_metadata_genre(config)),
+    #                  '-metadata', 'title="{}"'.format(title),
+    #                  '-metadata', 'description="{}"'.format(description)]
     else:
         return Metadata(
             metadata = [],
-            cover = "",
             thumbnail = "",
             output = "",
             path = "",
@@ -433,7 +420,6 @@ def get_metadata(type, id, config: KamyrollConf) -> Metadata:
 
     return Metadata(
         metadata,
-        cover,
         thumbnail,
         output,
         path

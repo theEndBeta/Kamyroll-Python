@@ -9,23 +9,22 @@ log = logging.getLogger(__name__)
 
 class Subtitles:
 
-    def __init__(self, output, language):
+    def __init__(self, output: str, language: str):
         self.output = output
         self.language = language
 
-    def download(self, subtitles_url):
-        output = '{}{}.{}'.format(self.output, utils.get_language_title(self.language), 'ass')
+    def download(self, subtitles_url: str, ext: str):
+        output = '{}.{}.{}'.format(self.output, self.language, ext)
         if os.path.exists(output):
             os.remove(output)
 
         r = requests.get(subtitles_url)
-        file = open(output, 'wb')
-        file.write(r.content)
-        file.close()
+        with open(output, 'wb') as file:
+            file.write(r.content)
 
-    def convert(self, extension):
-        output = '{}{}.{}'.format(self.output, utils.get_language_title(self.language), extension)
-        if os.path.exists('{}{}.{}'.format(self.output, utils.get_language_title(self.language), 'ass')):
+    def convert(self, extension: str):
+        output = '{}.{}.{}'.format(self.output, self.language, extension)
+        if os.path.exists('{}.{}.{}'.format(self.output, self.language, 'ass')):
             if os.path.exists(output):
                 os.remove(output)
 

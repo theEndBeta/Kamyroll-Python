@@ -4,6 +4,7 @@ import requests
 import kamyroll.extractor as extractor
 import kamyroll.utils as utils
 from kamyroll.config import KamyrollConf
+from typing import Optional
 
 log = logging.getLogger(__name__)
 
@@ -11,17 +12,17 @@ class crunchyroll:
 
     def __init__(self, config: KamyrollConf):
         self.config = config
+        self.session = utils.get_session(self.config)
+        self.session.headers = utils.get_headers(self.config, with_auth=True)
 
     def login(self, username: str, password: str):
-        session = utils.get_session(self.config)
-
         data = {
             "username": username,
             "password": password,
         }
         log.debug({**data, password: ""})
 
-        response_json = session.post('https://prod-api-funimationnow.dadcdigital.com/api/auth/login/', data=data).json()
+        response_json = self.session.post('https://prod-api-funimationnow.dadcdigital.com/api/auth/login/', data=data).json()
         if utils.check_error(response_json):
             sys.exit(0)
 
@@ -30,15 +31,10 @@ class crunchyroll:
         self.config.set_conf(response_json.get('user_region'), 'user_region')
         self.config.save()
 
-        headers = utils.get_headers(self.config, with_auth=True)
-        session.headers = headers
+        self.session.headers = utils.get_headers(self.config, with_auth=True)
         sys.exit(0)
 
     def searchShows(self, query):
-        headers = utils.get_headers(self.config, with_auth=True)
-
-        session = utils.get_session(self.config)
-        session.headers = headers
 
         params = {
             'q': str(query),
@@ -49,7 +45,7 @@ class crunchyroll:
             'index': 'search-shows',
         }
 
-        r = session.get('https://search.prd.funimationsvc.com/v1/search', params=params).json()
+        r = self.session.get('https://search.prd.funimationsvc.com/v1/search', params=params).json()
         log.debug(r)
         if utils.check_error(r):
             sys.exit(0)
@@ -58,13 +54,9 @@ class crunchyroll:
         sys.exit(0)
 
 
-    def getShowData(self, show_id: str):
-        headers = utils.get_headers(self.config, with_auth=True)
+    def getShowData(self, show_id: str) -> Optional[dict]:
 
-        session = utils.get_session(self.config)
-        session.headers = headers
-
-        r = session.get('https://prod-api-funimationnow.dadcdigital.com/api/source/catalog/title/{}'.format(show_id)).json()
+        r = self.session.get('https://prod-api-funimationnow.dadcdigital.com/api/source/catalog/title/{}'.format(show_id)).json()
         log.debug(r)
         if utils.check_error(r):
             sys.exit(0)
@@ -72,18 +64,15 @@ class crunchyroll:
         shows = r.get('items', [])
         if len(shows) == 0:
             print("No shows found")
-            return
+            return None
 
         extractor.outputShow(shows[0], with_children=True)
+        return shows[0]
 
 
-    def getSeasonData(self, season_id: str) -> None:
-        headers = utils.get_headers(self.config, with_auth=True)
+    def getSeasonData(self, season_id: str) -> Optional[dict]:
 
-        session = utils.get_session(self.config)
-        session.headers = headers
-
-        r = session.get('https://prod-api-funimationnow.dadcdigital.com/api/source/catalog/season/{}'.format(season_id)).json()
+        r = self.session.get('https://prod-api-funimationnow.dadcdigital.com/api/source/catalog/season/{}'.format(season_id)).json()
         log.debug(r)
         if utils.check_error(r):
             sys.exit(0)
@@ -94,24 +83,22 @@ class crunchyroll:
             return
 
         extractor.outputSeason(seasons[0], with_children=True)
+        return seasons[0]
 
 
-    def getEpisodeData(self, episode_id: str) -> dict:
-        headers = utils.get_headers(self.config, with_auth=True)
+    def getEpisodeData(self, episode_id: str) -> Optional[dict]:
 
-        session = utils.get_session(self.config)
-        session.headers = headers
-
-        r = session.get('https://prod-api-funimationnow.dadcdigital.com/api/source/catalog/episode/{}'.format(episode_id)).json()
+        r = self.session.get('https://prod-api-funimationnow.dadcdigital.com/api/source/catalog/episode/{}'.format(episode_id)).json()
         log.debug(r)
         if utils.check_error(r):
             sys.exit(0)
 
         episodes = r.get('items', [])
         if len(episodes) == 0:
-            print("No episodes found")
-        else:
-            extractor.outputEpisode(episodes[0])
+            print("No episodes found for id {}".format(episode_id))
+            return None
+
+        extractor.outputEpisode(episodes[0])
 
         return episodes[0]
 

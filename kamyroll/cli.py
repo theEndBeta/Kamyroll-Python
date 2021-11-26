@@ -62,6 +62,9 @@ def run():
 
 
     cr_api = api.crunchyroll(KamyrollConf.load(args.config))
+    cr_dl = None
+    if args.download is not None:
+        cr_dl = downloader.crunchyroll(cr_api)
 
     if args.login:
         (username, password) = utils.get_login_form(args.login)
@@ -74,30 +77,28 @@ def run():
             sys.exit(0)
         cr_api.login(username, password)
     elif args.search:
-        cr_api.search(args.search)
+        cr_api.searchShows(args.search)
     elif args.series:
-        cr_api.series(args.series)
+        cr_api.getShowData(args.series)
     elif args.season:
-        cr_api.season(args.season)
+        season_data = cr_api.getSeasonData(args.season)
+        if cr_dl is not None and season_data is not None:
+            cr_dl.download_all([ep.get('id', '') for ep in season_data.get('children', [])])
     elif args.episode:
-        stream_ids = cr_api.episode(args.episode)
-        if args.download is not None:
-            cr_dl = downloader.crunchyroll(cr_api.config)
-            cr_dl.download_all(stream_ids)
+        episode_data = cr_api.getEpisodeData(args.episode)
+        if episode_data is not None and cr_dl is not None:
+            cr_dl.download(episode_data.get('id', ''))
     elif args.movie:
         cr_api.movie(args.movie)
     elif args.download:
         if args.download == "":
             parser.error("--download/-d must have an argument if used alone")
-        cr_dl = downloader.crunchyroll(cr_api.config)
+        cr_dl = downloader.crunchyroll(cr_api)
         # if args.playlist:
         #     if len(args.playlist)
         #     cr_dl.download_season(args.download, args.playlist)
         # else:
         cr_dl.download(args.download)
-    elif args.url:
-        cr_dl = downloader.crunchyroll(cr_api.config)
-        cr_dl.url(args.url)
     else:
         parser.print_help()
 
