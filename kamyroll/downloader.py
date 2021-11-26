@@ -128,7 +128,7 @@ class crunchyroll:
             'ffmpeg',
             '-hide_banner',
             '-user_agent', utils.get_headers(self.config, with_auth=False).get('user-agent', ''),
-            '-v', 'trace',
+            # '-v', 'trace',
             '-stats',
             '-y',
             '-i', video_url,
